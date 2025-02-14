@@ -3,6 +3,7 @@ package org.example.buysell_application.services;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.example.buysell_application.dao.entityes.Product;
 import org.example.buysell_application.dao.repository.ProductDAO;
@@ -27,7 +28,7 @@ public class ProductServiceInMemoryImpl implements ProductService {
             .filter(product -> price == null || product.getPrice().equals(price))
             .filter(product -> city == null || product.getCity().equalsIgnoreCase(city))
             .filter(product -> author == null || product.getAuthor().equalsIgnoreCase(author))
-            .collect(Collectors.toList());
+            .toList();
     }
 }
 
