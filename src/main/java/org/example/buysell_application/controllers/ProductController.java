@@ -15,12 +15,12 @@ public class ProductController {
     private final ProductServiceInDataBase productService;
 
     @GetMapping("/{id}")
-    public ProductDto getProductById(@PathVariable long id) {
+    public ProductGetDto getProductById(@PathVariable long id) {
         return productService.getProductById(id);
     }
 
     @GetMapping
-    public List<ProductDto> getProducts(
+    public List<ProductGetDto> getProducts(
         @RequestParam(required = false) String title,
         @RequestParam(required = false) Integer price,
         @RequestParam(required = false) String city,
@@ -29,12 +29,12 @@ public class ProductController {
     }
 
     @PostMapping("/create")
-    public ProductDto createProduct(@RequestBody ProductDto productDto) {
+    public ProductGetDto createProduct(@RequestBody ProductCreateDto productDto) {
         return productService.createProduct(productDto);
     }
 
     @PutMapping("/{id}")
-    public ProductDto updateProduct(@PathVariable Long id, @RequestBody ProductDto productDto) {
+    public ProductGetDto updateProduct(@PathVariable Long id, @RequestBody ProductCreateDto productDto) {
         return productService.updateProduct(id, productDto);
     }
 
@@ -43,6 +43,7 @@ public class ProductController {
         productService.deleteProduct(id);
     }
 }
+
 
 
 

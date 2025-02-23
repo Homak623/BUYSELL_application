@@ -1,9 +1,14 @@
 package org.example.buysell_application.controllers;
 
+import buysell.dao.dto.get.OrderGetDto;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.example.buysell_application.dao.dto.create.CreateOrderDto;
+import org.example.buysell_application.dao.dto.get.GetOrderDto;
 import org.example.buysell_application.dao.entityes.Order;
+import org.example.buysell_application.dao.mappers.OrderMapper;
 import org.example.buysell_application.services.OrderService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,25 +17,30 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderService orderService;
+    private final OrderMapper orderMapper;
 
     @PostMapping("/create")
-    public Order createOrder(@RequestParam Long userId, @RequestBody List<Long> productIds) {
-        return orderService.createOrder(userId, productIds);
+    public GetOrderDto createOrder(@RequestBody CreateOrderDto createOrderDto) {
+        Order order = orderService.createOrder(createOrderDto.getUserId(), createOrderDto.getProductIds());
+        return orderMapper.toDto(order);
     }
 
     @GetMapping("/{id}")
-    public Order getOrderById(@PathVariable Long id) {
-        return orderService.getOrderById(id);
+    public GetOrderDto getOrderById(@PathVariable Long id) {
+        Order order = orderService.getOrderById(id);
+        return orderMapper.toDto(order);
     }
 
     @GetMapping("/user/{userId}")
-    public List<Order> getUserOrders(@PathVariable Long userId) {
-        return orderService.getOrdersByUser(userId);
+    public List<GetOrderDto> getOrdersByUser(@PathVariable Long userId) {
+        List<Order> orders = orderService.getOrdersByUser(userId);
+        return orderMapper.toDtos(orders);
     }
 
-    @PutMapping("/{id}")
-    public Order updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
-        return orderService.updateOrderStatus(id, status);
+    @PutMapping("/{id}/status")
+    public GetOrderDto updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
+        Order order = orderService.updateOrderStatus(id, status);
+        return orderMapper.toDto(order);
     }
 
     @DeleteMapping("/{id}")
@@ -38,3 +48,6 @@ public class OrderController {
         orderService.deleteOrder(id);
     }
 }
+
+
+

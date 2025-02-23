@@ -19,27 +19,27 @@ public class ProductServiceInDataBase {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
-    public ProductDto getProductById(long id) {
+    public ProductGetDto getProductById(long id) {
         return productMapper.toDto(
             productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Product with id " + id + " not found"))
         );
     }
 
-    public List<ProductDto> getFilteredProducts(String title, Integer price, String city, String author) {
+    public List<ProductGetDto> getFilteredProducts(String title, Integer price, String city, String author) {
         return productMapper.toDtos(
             productRepository.findByTitleIgnoreCaseAndPriceAndCityIgnoreCaseAndAuthorIgnoreCase(title, price, city, author)
         );
     }
 
-    public ProductDto createProduct(ProductDto productDto) {
-        Product product = productMapper.toEntity(productDto);
+    public ProductGetDto createProduct(ProductCreateDto productCreateDto) {
+        Product product = productMapper.toEntity(productCreateDto);
         return productMapper.toDto(productRepository.save(product));
     }
 
-    public ProductDto updateProduct(Long id, ProductDto productDto) {
+    public ProductGetDto updateProduct(Long id, ProductCreateDto productCreateDto) {
         return productRepository.findById(id).map(product -> {
-            productMapper.merge(product, productDto);
+            productMapper.updateProductFromDto(productCreateDto, product);
             return productMapper.toDto(productRepository.save(product));
         }).orElseThrow(() -> new NoSuchElementException("Product with id " + id + " not found"));
     }
@@ -50,6 +50,7 @@ public class ProductServiceInDataBase {
         productRepository.delete(product);
     }
 }
+
 
 
 

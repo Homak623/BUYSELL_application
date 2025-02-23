@@ -21,33 +21,39 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-    public User getUserById(Long id) {
-        return userRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("User with id " + id + " not found"));
-    }
-
-    public User createUser(UserDto userDto) {
-        if (userRepository.findByEmail(userDto.getEmail())) {
-            throw new NoSuchElementException(
-                "User with email " + userDto.getEmail() + " already exists");
-        }
-        User user = userMapper.toEntity(userDto);
-        return userRepository.save(user);
-    }
-
-    public User updateUser(Long id, UserDto userDto) {
+    public UserGetDto getUserById(Long id) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new NoSuchElementException("User with id " + id + " not found"));
-        user = userMapper.merge(user, userDto);
-        return userRepository.save(user);
+        return userMapper.toDto(user);
+    }
+
+    public UserGetDto createUser(UserCreateDto userCreateDto) {
+        if (userRepository.existsByEmail(userCreateDto.getEmail())) {
+            throw new IllegalArgumentException(
+                "User with email " + userCreateDto.getEmail() + " already exists");
+        }
+        User user = userMapper.toEntity(userCreateDto);
+        return userMapper.toDto(userRepository.save(user));
+    }
+
+    public UserGetDto updateUser(Long id, UserCreateDto userCreateDto) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("User with id " + id + " not found"));
+
+        userMapper.updateUserFromDto(userCreateDto, user);
+        return userMapper.toDto(userRepository.save(user));
     }
 
     public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new NoSuchElementException("User with id " + id + " not found");
+        }
         userRepository.deleteById(id);
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserGetDto> getAllUsers() {
+        return userMapper.toDtos(userRepository.findAll());
     }
 }
+
 
