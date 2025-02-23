@@ -5,6 +5,7 @@ import buysell.dao.entityes.Product;
 import buysell.dao.get.GetProductDto;
 import buysell.dao.mappers.ProductMapper;
 import buysell.dao.repository.ProductRepository;
+import buysell.errors.ErrorMessages;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -20,15 +21,17 @@ public class ProductService {
 
     public GetProductDto getProductById(long id) {
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("Product with id " + id + " not found"));
+            .orElseThrow(() -> new NoSuchElementException(
+                String.format(ErrorMessages.PRODUCT_NOT_FOUND, id)
+            ));
         return productMapper.toDto(product);
     }
 
-    public List<GetProductDto> getFilteredProducts(String title,
-                                                   Integer price, String city, String author) {
+    public List<GetProductDto> getFilteredProducts(String title, Integer price, String city, String author) {
         return productMapper.toDtos(
             productRepository.findByTitleIgnoreCaseAndPriceAndCityIgnoreCaseAndAuthorIgnoreCase(
-                title, price, city, author)
+                title, price, city, author
+            )
         );
     }
 
@@ -42,7 +45,9 @@ public class ProductService {
     @Transactional
     public GetProductDto updateProduct(Long id, CreateProductDto createProductDto) {
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("Product with id " + id + " not found"));
+            .orElseThrow(() -> new NoSuchElementException(
+                String.format(ErrorMessages.PRODUCT_NOT_FOUND, id)
+            ));
 
         productMapper.updateProductFromDto(createProductDto, product);
         product = productRepository.save(product);
@@ -53,10 +58,13 @@ public class ProductService {
     @Transactional
     public void deleteProduct(long id) {
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("Product with id " + id + " not found"));
+            .orElseThrow(() -> new NoSuchElementException(
+                String.format(ErrorMessages.PRODUCT_NOT_FOUND, id)
+            ));
         productRepository.delete(product);
     }
 }
+
 
 
 

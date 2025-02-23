@@ -6,6 +6,7 @@ import buysell.dao.entityes.User;
 import buysell.dao.get.GetUserDto;
 import buysell.dao.mappers.UserMapper;
 import buysell.dao.repository.UserRepository;
+import buysell.errors.ErrorMessages;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -21,7 +22,9 @@ public class UserService {
 
     public GetUserDto getUserById(Long id) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("User with id " + id + " not found"));
+            .orElseThrow(() -> new NoSuchElementException(
+                String.format(ErrorMessages.USER_NOT_FOUND, id)
+            ));
         return userMapper.toDto(user);
     }
 
@@ -29,7 +32,8 @@ public class UserService {
     public GetUserDto createUser(CreateUserDto createUserDto) {
         if (userRepository.existsByEmail(createUserDto.getEmail())) {
             throw new IllegalArgumentException(
-                "User with email " + createUserDto.getEmail() + " already exists");
+                String.format(ErrorMessages.EMAIL_EXISTS, createUserDto.getEmail())
+            );
         }
 
         User user = userMapper.toEntity(createUserDto);
@@ -41,12 +45,15 @@ public class UserService {
     @Transactional
     public GetUserDto updateUser(Long id, CreateUserDto createUserDto) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("User with id " + id + " not found"));
+            .orElseThrow(() -> new NoSuchElementException(
+                String.format(ErrorMessages.USER_NOT_FOUND, id)
+            ));
 
         if (userRepository.existsByEmail(createUserDto.getEmail())
             && !user.getEmail().equals(createUserDto.getEmail())) {
-            throw new IllegalArgumentException("User with email "
-                + createUserDto.getEmail() + " already exists");
+            throw new IllegalArgumentException(
+                String.format(ErrorMessages.EMAIL_EXISTS, createUserDto.getEmail())
+            );
         }
 
         userMapper.updateUserFromDto(createUserDto, user);
@@ -58,7 +65,9 @@ public class UserService {
     @Transactional
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("User with id " + id + " not found"));
+            .orElseThrow(() -> new NoSuchElementException(
+                String.format(ErrorMessages.USER_NOT_FOUND, id)
+            ));
         userRepository.delete(user);
     }
 
@@ -66,6 +75,7 @@ public class UserService {
         return userMapper.toDtos(userRepository.findAll());
     }
 }
+
 
 
 

@@ -10,6 +10,7 @@ import buysell.dao.repository.OrderRepository;
 import buysell.dao.repository.ProductRepository;
 import buysell.dao.repository.UserRepository;
 import buysell.enums.Status;
+import buysell.errors.ErrorMessages;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,12 +31,13 @@ public class OrderService {
     @Transactional
     public GetOrderDto createOrder(CreateOrderDto createOrderDto) {
         User user = userRepository.findById(createOrderDto.getUserId())
-            .orElseThrow(() -> new NoSuchElementException("User with id "
-                + createOrderDto.getUserId() + " not found"));
+            .orElseThrow(() -> new NoSuchElementException(
+                String.format(ErrorMessages.USER_NOT_FOUND, createOrderDto.getUserId())
+            ));
 
         List<Product> products = productRepository.findAllById(createOrderDto.getProductIds());
         if (products.isEmpty()) {
-            throw new IllegalArgumentException("No valid products found for the given IDs");
+            throw new IllegalArgumentException(ErrorMessages.NO_VALID_PRODUCTS);
         }
 
         Order order = new Order(null, user, products, LocalDateTime.now(), Status.CREATED);
@@ -44,20 +46,26 @@ public class OrderService {
 
     public GetOrderDto getOrderById(Long id) {
         Order order = orderRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("Order with id " + id + " not found"));
+            .orElseThrow(() -> new NoSuchElementException(
+                String.format(ErrorMessages.ORDER_NOT_FOUND, id)
+            ));
         return orderMapper.toDto(order);
     }
 
     public List<GetOrderDto> getOrdersByUser(Long userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
+            .orElseThrow(() -> new NoSuchElementException(
+                String.format(ErrorMessages.USER_NOT_FOUND, userId)
+            ));
         return orderMapper.toDtos(orderRepository.findByUser(user));
     }
 
     @Transactional
     public GetOrderDto updateOrderStatus(Long id, Status status) {
         Order order = orderRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("Order with id " + id + " not found"));
+            .orElseThrow(() -> new NoSuchElementException(
+                String.format(ErrorMessages.ORDER_NOT_FOUND, id)
+            ));
 
         order.setStatus(status);
         return orderMapper.toDto(orderRepository.save(order));
@@ -65,11 +73,14 @@ public class OrderService {
 
     public void deleteOrder(Long id) {
         if (!orderRepository.existsById(id)) {
-            throw new NoSuchElementException("Order with id " + id + " not found");
+            throw new NoSuchElementException(
+                String.format(ErrorMessages.ORDER_NOT_FOUND, id)
+            );
         }
         orderRepository.deleteById(id);
     }
 }
+
 
 
 
