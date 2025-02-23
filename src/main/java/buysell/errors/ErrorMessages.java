@@ -1,6 +1,11 @@
 package buysell.errors;
 
 public class ErrorMessages {
+    private ErrorMessages() {
+        throw new UnsupportedOperationException(
+            "This is a utility class and cannot be instantiated");
+    }
+
     public static final String USER_NOT_FOUND = "User with id %d not found";
     public static final String ORDER_NOT_FOUND = "Order with id %d not found";
     public static final String PRODUCT_NOT_FOUND = "Product with id %d not found";
