@@ -1,8 +1,7 @@
-package org.example.buysell_application.dao.dto.get;
+package buysell.dao.dto.get;
 
 import lombok.Getter;
 import lombok.Setter;
-import java.util.List;
 
 @Getter
 @Setter

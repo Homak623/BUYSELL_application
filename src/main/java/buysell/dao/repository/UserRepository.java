@@ -1,7 +1,7 @@
-package org.example.buysell_application.dao.repository;
+package buysell.dao.repository;
 
+import buysell.dao.entityes.User;
 import java.util.List;
-import org.example.buysell_application.dao.entityes.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -11,4 +11,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> id(Long id);
 
     boolean findByEmail(String email);
+
+    boolean existsByEmail(String email);
 }

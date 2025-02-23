@@ -1,19 +1,20 @@
-package org.example.buysell_application.services;
+package buysell.services;
 
+import buysell.dao.dto.create.CreateOrderDto;
+import buysell.dao.dto.get.GetOrderDto;
+import buysell.dao.entityes.Order;
+import buysell.dao.entityes.Product;
+import buysell.dao.entityes.User;
 import buysell.dao.mappers.OrderMapper;
+import buysell.dao.repository.OrderRepository;
+import buysell.dao.repository.ProductRepository;
+import buysell.dao.repository.UserRepository;
+import buysell.enums.Status;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
-import org.example.buysell_application.dao.dto.create.CreateOrderDto;
-import org.example.buysell_application.dao.dto.get.GetOrderDto;
-import org.example.buysell_application.dao.entityes.Order;
-import org.example.buysell_application.dao.entityes.Product;
-import org.example.buysell_application.dao.entityes.User;
-import org.example.buysell_application.dao.repository.OrderRepository;
-import org.example.buysell_application.dao.repository.ProductRepository;
-import org.example.buysell_application.dao.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,16 +27,18 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final OrderMapper orderMapper;
 
+    @Transactional
     public GetOrderDto createOrder(CreateOrderDto createOrderDto) {
         User user = userRepository.findById(createOrderDto.getUserId())
-            .orElseThrow(() -> new NoSuchElementException("User with id " + createOrderDto.getUserId() + " not found"));
+            .orElseThrow(() -> new NoSuchElementException("User with id "
+                + createOrderDto.getUserId() + " not found"));
 
         List<Product> products = productRepository.findAllById(createOrderDto.getProductIds());
         if (products.isEmpty()) {
             throw new IllegalArgumentException("No valid products found for the given IDs");
         }
 
-        Order order = new Order(null, user, products, LocalDateTime.now(), "NEW");
+        Order order = new Order(null, user, products, LocalDateTime.now(), Status.CREATED);
         return orderMapper.toDto(orderRepository.save(order));
     }
 
@@ -48,23 +51,26 @@ public class OrderService {
     public List<GetOrderDto> getOrdersByUser(Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
-        List<Order> orders = orderRepository.findByUser(user);
-        return orderMapper.toDtos(orders);
+        return orderMapper.toDtos(orderRepository.findByUser(user));
     }
 
-    public GetOrderDto updateOrderStatus(Long id, String status) {
-        return orderRepository.findById(id).map(order -> {
-            order.setStatus(status);
-            return orderMapper.toDto(orderRepository.save(order));
-        }).orElseThrow(() -> new NoSuchElementException("Order with id " + id + " not found"));
+    @Transactional
+    public GetOrderDto updateOrderStatus(Long id, Status status) {
+        Order order = orderRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("Order with id " + id + " not found"));
+
+        order.setStatus(status);
+        return orderMapper.toDto(orderRepository.save(order));
     }
 
     public void deleteOrder(Long id) {
-        Order order = orderRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException("Order with id " + id + " not found"));
-        orderRepository.delete(order);
+        if (!orderRepository.existsById(id)) {
+            throw new NoSuchElementException("Order with id " + id + " not found");
+        }
+        orderRepository.deleteById(id);
     }
 }
+
 
 
 

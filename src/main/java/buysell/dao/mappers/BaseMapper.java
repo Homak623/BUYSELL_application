@@ -1,4 +1,4 @@
-package org.example.buysell_application.dao.mappers;
+package buysell.dao.mappers;
 
 import java.util.List;
 import org.mapstruct.*;

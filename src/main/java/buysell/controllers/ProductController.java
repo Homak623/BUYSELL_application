@@ -1,10 +1,10 @@
-package org.example.buysell_application.controllers;
+package buysell.controllers;
 
+import buysell.dao.dto.create.CreateProductDto;
+import buysell.dao.dto.get.GetProductDto;
+import buysell.services.ProductService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.example.buysell_application.dao.dto.ProductDto;
-import org.example.buysell_application.dao.entityes.Product;
-import org.example.buysell_application.services.ProductServiceInDataBase;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,15 +12,15 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class ProductController {
 
-    private final ProductServiceInDataBase productService;
+    private final ProductService productService;
 
     @GetMapping("/{id}")
-    public ProductGetDto getProductById(@PathVariable long id) {
+    public GetProductDto getProductById(@PathVariable long id) {
         return productService.getProductById(id);
     }
 
     @GetMapping
-    public List<ProductGetDto> getProducts(
+    public List<GetProductDto> getProducts(
         @RequestParam(required = false) String title,
         @RequestParam(required = false) Integer price,
         @RequestParam(required = false) String city,
@@ -29,12 +29,13 @@ public class ProductController {
     }
 
     @PostMapping("/create")
-    public ProductGetDto createProduct(@RequestBody ProductCreateDto productDto) {
+    public GetProductDto createProduct(@RequestBody CreateProductDto productDto) {
         return productService.createProduct(productDto);
     }
 
     @PutMapping("/{id}")
-    public ProductGetDto updateProduct(@PathVariable Long id, @RequestBody ProductCreateDto productDto) {
+    public GetProductDto updateProduct(@PathVariable Long id,
+                                       @RequestBody CreateProductDto productDto) {
         return productService.updateProduct(id, productDto);
     }
 
@@ -43,6 +44,7 @@ public class ProductController {
         productService.deleteProduct(id);
     }
 }
+
 
 
 

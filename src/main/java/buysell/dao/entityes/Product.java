@@ -1,4 +1,4 @@
-package org.example.buysell_application.dao.entityes;
+package buysell.dao.entityes;
 
 import jakarta.persistence.*;
 import java.util.List;
@@ -12,16 +12,23 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+@Table(name = "products")
+public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String username;
-    private String email;
+    private String title;
+    private String description;
+    private Integer price;
+    private String city;
+    private String author;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "products")
     private List<Order> orders;
 }
+
+
+
 
 

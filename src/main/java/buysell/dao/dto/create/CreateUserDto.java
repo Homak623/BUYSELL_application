@@ -1,14 +1,15 @@
-package org.example.buysell_application.dao.dto;
+package buysell.dao.dto.create;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
-@AllArgsConstructor
+@Getter
+@Setter
 @NoArgsConstructor
-public class UserDto {
+@AllArgsConstructor
+public class CreateUserDto {
     private String username;
     private String email;
 }
-

@@ -1,9 +1,8 @@
-package org.example.buysell_application.dao.mappers;
+package buysell.dao.mappers;
 
-import org.example.buysell_application.dao.dto.UserDto;
-import org.example.buysell_application.dao.dto.create.CreateUserDto;
-import org.example.buysell_application.dao.dto.get.GetUserDto;
-import org.example.buysell_application.dao.entityes.User;
+import buysell.dao.dto.create.CreateUserDto;
+import buysell.dao.dto.get.GetUserDto;
+import buysell.dao.entityes.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;

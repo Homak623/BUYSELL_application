@@ -1,5 +1,6 @@
-package org.example.buysell_application.dao.dto.create;
+package buysell.dao.dto.create;
 
+import buysell.enums.Status;
 import java.util.List;
 import lombok.Data;
 
@@ -7,5 +8,5 @@ import lombok.Data;
 public class CreateOrderDto {
     private Long userId;  // Идентификатор пользователя
     private List<Long> productIds;  // Список ID продуктов
-    private String status;  // Статус заказа (например, "создан", "оплачен", и т.д.)
+    private Status status;  // Статус заказа (например, "создан", "оплачен", и т.д.)
 }

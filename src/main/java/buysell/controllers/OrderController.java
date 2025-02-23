@@ -1,14 +1,11 @@
-package org.example.buysell_application.controllers;
+package buysell.controllers;
 
-import buysell.dao.dto.get.OrderGetDto;
+import buysell.dao.dto.create.CreateOrderDto;
+import buysell.dao.dto.get.GetOrderDto;
+import buysell.enums.Status;
+import buysell.services.OrderService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.example.buysell_application.dao.dto.create.CreateOrderDto;
-import org.example.buysell_application.dao.dto.get.GetOrderDto;
-import org.example.buysell_application.dao.entityes.Order;
-import org.example.buysell_application.dao.mappers.OrderMapper;
-import org.example.buysell_application.services.OrderService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -34,7 +31,7 @@ public class OrderController {
     }
 
     @PutMapping("/{id}/status")
-    public GetOrderDto updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
+    public GetOrderDto updateOrderStatus(@PathVariable Long id, @RequestParam Status status) {
         return orderService.updateOrderStatus(id, status);
     }
 
@@ -43,6 +40,7 @@ public class OrderController {
         orderService.deleteOrder(id);
     }
 }
+
 
 
 

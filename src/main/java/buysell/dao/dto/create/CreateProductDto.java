@@ -1,4 +1,4 @@
-package org.example.buysell_application.dao.dto.get;
+package buysell.dao.dto.create;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,8 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetProductDto {
-    private Long id;
+public class CreateProductDto {
     private String title;
     private String description;
     private Integer price;

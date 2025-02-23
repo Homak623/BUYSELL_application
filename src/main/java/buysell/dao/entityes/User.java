@@ -1,7 +1,6 @@
-package org.example.buysell_application.dao.entityes;
+package buysell.dao.entityes;
 
 import jakarta.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,23 +12,17 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "products")
-public class Product {
+@Table(name = "users")
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String title;
-    private String description;
-    private Integer price;
-    private String city;
-    private String author;
+    private String username;
+    private String email;
 
-    @ManyToMany(mappedBy = "products")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Order> orders;
 }
-
-
-
 
 
