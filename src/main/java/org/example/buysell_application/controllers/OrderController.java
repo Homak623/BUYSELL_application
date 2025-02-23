@@ -17,30 +17,25 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     private final OrderService orderService;
-    private final OrderMapper orderMapper;
 
     @PostMapping("/create")
     public GetOrderDto createOrder(@RequestBody CreateOrderDto createOrderDto) {
-        Order order = orderService.createOrder(createOrderDto.getUserId(), createOrderDto.getProductIds());
-        return orderMapper.toDto(order);
+        return orderService.createOrder(createOrderDto);
     }
 
     @GetMapping("/{id}")
     public GetOrderDto getOrderById(@PathVariable Long id) {
-        Order order = orderService.getOrderById(id);
-        return orderMapper.toDto(order);
+        return orderService.getOrderById(id);
     }
 
     @GetMapping("/user/{userId}")
     public List<GetOrderDto> getOrdersByUser(@PathVariable Long userId) {
-        List<Order> orders = orderService.getOrdersByUser(userId);
-        return orderMapper.toDtos(orders);
+        return orderService.getOrdersByUser(userId);
     }
 
     @PutMapping("/{id}/status")
     public GetOrderDto updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
-        Order order = orderService.updateOrderStatus(id, status);
-        return orderMapper.toDto(order);
+        return orderService.updateOrderStatus(id, status);
     }
 
     @DeleteMapping("/{id}")
@@ -48,6 +43,7 @@ public class OrderController {
         orderService.deleteOrder(id);
     }
 }
+
 
 
 

@@ -2,8 +2,8 @@ package buysell.dao.mappers;
 
 import buysell.dao.dto.create.OrderCreateDto;
 import buysell.dao.dto.get.OrderGetDto;
-import buysell.dao.entityes.Order;
-import java.util.List;
+import org.example.buysell_application.dao.entityes.Order;
+import org.example.buysell_application.dao.mappers.BaseMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -18,6 +18,7 @@ public interface OrderMapper extends BaseMapper<Order, OrderGetDto> {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     void updateOrderFromDto(OrderGetDto dto, @MappingTarget Order order);
+
 }
 
 

@@ -10,6 +10,5 @@ public class GetUserDto {
     private Long id;
     private String username;
     private String email;
-    private List<GetOrderDto> orders; // DTO для заказов
 }
 

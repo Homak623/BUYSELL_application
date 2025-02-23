@@ -1,18 +1,22 @@
 package org.example.buysell_application.dao.mappers;
 
+import buysell.dao.dto.create.ProductCreateDto;
 import org.example.buysell_application.dao.dto.ProductDto;
+import org.example.buysell_application.dao.dto.create.CreateProductDto;
+import org.example.buysell_application.dao.dto.get.GetProductDto;
 import org.example.buysell_application.dao.entityes.Product;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
-public interface ProductMapper extends BaseMapper<Product, ProductGetDto> {
+public interface ProductMapper extends BaseMapper<Product, GetProductDto> {
 
     @Mapping(target = "id", ignore = true) // Игнорируем ID при создании
-    Product toEntity(ProductCreateDto dto);
+    Product toEntity(CreateProductDto dto);
 
     @Override
-    ProductGetDto toDto(Product product);
+    GetProductDto toDto(Product product);
 
     // Метод обновления существующего продукта
     @Mapping(target = "id", ignore = true) // Не меняем ID
