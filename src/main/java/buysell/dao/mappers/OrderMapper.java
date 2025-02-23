@@ -11,7 +11,7 @@ import org.mapstruct.MappingTarget;
 public interface OrderMapper extends BaseMapper<Order, GetOrderDto> {
 
     @Override
-    @Mapping(target = "userId", source = "user.id") // Преобразуем User -> userId
+    @Mapping(target = "userId", source = "user.id")
     @Mapping(target = "productIds", expression = "java(order.getProducts() != null "
         + "? order.getProducts().stream()"
         + ".map(buysell.dao.entityes.Product::getId).toList() : new ArrayList<>())")

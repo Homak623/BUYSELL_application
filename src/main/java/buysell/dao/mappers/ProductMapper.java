@@ -10,14 +10,13 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface ProductMapper extends BaseMapper<Product, GetProductDto> {
 
-    @Mapping(target = "id", ignore = true) // Игнорируем ID при создании
+    @Mapping(target = "id", ignore = true)
     Product toEntity(CreateProductDto dto);
 
     @Override
     GetProductDto toDto(Product product);
 
-    // Метод обновления существующего продукта
-    @Mapping(target = "id", ignore = true) // Не меняем ID
+    @Mapping(target = "id", ignore = true)
     void updateProductFromDto(CreateProductDto dto, @MappingTarget Product product);
 }
 

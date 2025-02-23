@@ -27,7 +27,8 @@ public class ProductService {
         return productMapper.toDto(product);
     }
 
-    public List<GetProductDto> getFilteredProducts(String title, Integer price, String city, String author) {
+    public List<GetProductDto> getFilteredProducts(String title,
+                                                   Integer price, String city, String author) {
         return productMapper.toDtos(
             productRepository.findByTitleIgnoreCaseAndPriceAndCityIgnoreCaseAndAuthorIgnoreCase(
                 title, price, city, author

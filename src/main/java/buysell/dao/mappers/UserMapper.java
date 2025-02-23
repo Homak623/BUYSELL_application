@@ -10,7 +10,7 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface UserMapper extends BaseMapper<User, GetUserDto> {
 
-    @Mapping(target = "id", ignore = true) // Игнорируем ID при обновлении
+    @Mapping(target = "id", ignore = true)
     User toEntity(CreateUserDto dto);
 
     @Override
