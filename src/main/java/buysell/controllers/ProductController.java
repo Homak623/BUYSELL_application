@@ -19,6 +19,11 @@ public class ProductController {
         return productService.getProductById(id);
     }
 
+    @GetMapping("/all")
+    public List<GetProductDto> getAllProducts() {
+        return productService.getAllProducts();
+    }
+
     @GetMapping
     public List<GetProductDto> getProducts(
         @RequestParam(required = false) String title,
@@ -28,7 +33,7 @@ public class ProductController {
         return productService.getFilteredProducts(title, price, city, author);
     }
 
-    @PostMapping("/create")
+    @PostMapping
     public GetProductDto createProduct(@RequestBody CreateProductDto productDto) {
         return productService.createProduct(productDto);
     }
@@ -43,6 +48,7 @@ public class ProductController {
     public void deleteProduct(@PathVariable long id) {
         productService.deleteProduct(id);
     }
+
 }
 
 

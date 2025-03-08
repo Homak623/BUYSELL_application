@@ -5,6 +5,7 @@ import buysell.dao.get.GetUserDto;
 import buysell.services.UserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,8 +15,9 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/create")
-    public GetUserDto createUser(@RequestBody CreateUserDto createUserDto) {
+    @PostMapping
+    public GetUserDto createUser(@RequestBody CreateUserDto createUserDto)
+        throws BadRequestException {
         return userService.createUser(createUserDto);
     }
 
@@ -31,7 +33,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     public GetUserDto updateUser(@PathVariable Long id, @RequestBody
-        CreateUserDto createUserDto) {
+        CreateUserDto createUserDto) throws BadRequestException {
         return userService.updateUser(id, createUserDto);
     }
 

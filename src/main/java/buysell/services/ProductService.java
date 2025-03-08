@@ -6,9 +6,9 @@ import buysell.dao.get.GetProductDto;
 import buysell.dao.mappers.ProductMapper;
 import buysell.dao.repository.ProductRepository;
 import buysell.errors.ErrorMessages;
+import buysell.errors.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import java.util.List;
-import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +21,7 @@ public class ProductService {
 
     public GetProductDto getProductById(long id) {
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException(
+            .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.PRODUCT_NOT_FOUND, id)
             ));
         return productMapper.toDto(product);
@@ -30,10 +30,14 @@ public class ProductService {
     public List<GetProductDto> getFilteredProducts(String title,
                                                    Integer price, String city, String author) {
         return productMapper.toDtos(
-            productRepository.findByTitleIgnoreCaseAndPriceAndCityIgnoreCaseAndAuthorIgnoreCase(
+            productRepository.findByFilters(
                 title, price, city, author
             )
         );
+    }
+
+    public List<GetProductDto> getAllProducts() {
+        return productMapper.toDtos(productRepository.findAll());
     }
 
     @Transactional
@@ -46,7 +50,7 @@ public class ProductService {
     @Transactional
     public GetProductDto updateProduct(Long id, CreateProductDto createProductDto) {
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException(
+            .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.PRODUCT_NOT_FOUND, id)
             ));
 
@@ -59,12 +63,13 @@ public class ProductService {
     @Transactional
     public void deleteProduct(long id) {
         Product product = productRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException(
+            .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.PRODUCT_NOT_FOUND, id)
             ));
         productRepository.delete(product);
     }
 }
+
 
 
 

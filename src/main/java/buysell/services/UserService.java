@@ -7,10 +7,11 @@ import buysell.dao.get.GetUserDto;
 import buysell.dao.mappers.UserMapper;
 import buysell.dao.repository.UserRepository;
 import buysell.errors.ErrorMessages;
+import buysell.errors.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import java.util.List;
-import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,42 +23,42 @@ public class UserService {
 
     public GetUserDto getUserById(Long id) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException(
+            .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.USER_NOT_FOUND, id)
             ));
         return userMapper.toDto(user);
     }
 
     @Transactional
-    public GetUserDto createUser(CreateUserDto createUserDto) {
+    public GetUserDto createUser(CreateUserDto createUserDto) throws BadRequestException {
         if (userRepository.existsByEmail(createUserDto.getEmail())) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                 String.format(ErrorMessages.EMAIL_EXISTS, createUserDto.getEmail())
             );
         }
 
         User user = userMapper.toEntity(createUserDto);
-        user = userRepository.save(user); // Сохранение в БД
+        user = userRepository.save(user);
 
         return userMapper.toDto(user);
     }
 
     @Transactional
-    public GetUserDto updateUser(Long id, CreateUserDto createUserDto) {
+    public GetUserDto updateUser(Long id, CreateUserDto createUserDto) throws BadRequestException {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException(
+            .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.USER_NOT_FOUND, id)
             ));
 
         if (userRepository.existsByEmail(createUserDto.getEmail())
             && !user.getEmail().equals(createUserDto.getEmail())) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                 String.format(ErrorMessages.EMAIL_EXISTS, createUserDto.getEmail())
             );
         }
 
         userMapper.updateUserFromDto(createUserDto, user);
-        user = userRepository.save(user); // Обновление в БД
+        user = userRepository.save(user);
 
         return userMapper.toDto(user);
     }
@@ -65,7 +66,7 @@ public class UserService {
     @Transactional
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException(
+            .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.USER_NOT_FOUND, id)
             ));
         userRepository.delete(user);
@@ -75,7 +76,6 @@ public class UserService {
         return userMapper.toDtos(userRepository.findAll());
     }
 }
-
 
 
 

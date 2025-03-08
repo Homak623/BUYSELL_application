@@ -11,11 +11,12 @@ import buysell.dao.repository.ProductRepository;
 import buysell.dao.repository.UserRepository;
 import buysell.enums.Status;
 import buysell.errors.ErrorMessages;
+import buysell.errors.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,24 +30,40 @@ public class OrderService {
     private final OrderMapper orderMapper;
 
     @Transactional
-    public GetOrderDto createOrder(CreateOrderDto createOrderDto) {
+    public GetOrderDto createOrder(CreateOrderDto createOrderDto) throws BadRequestException {
         User user = userRepository.findById(createOrderDto.getUserId())
-            .orElseThrow(() -> new NoSuchElementException(
+            .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.USER_NOT_FOUND, createOrderDto.getUserId())
             ));
 
         List<Product> products = productRepository.findAllById(createOrderDto.getProductIds());
         if (products.isEmpty()) {
-            throw new IllegalArgumentException(ErrorMessages.NO_VALID_PRODUCTS);
+            throw new BadRequestException(ErrorMessages.NO_VALID_PRODUCTS);
+        }
+
+        if (hasUserOrderedProducts(user, createOrderDto.getProductIds())) {
+            throw new BadRequestException(ErrorMessages.PRODUCTS_ALREADY_ORDERED);
         }
 
         Order order = new Order(null, user, products, LocalDateTime.now(), Status.CREATED);
         return orderMapper.toDto(orderRepository.save(order));
     }
 
+    private boolean hasUserOrderedProducts(User user, List<Long> productIds) {
+        List<Order> userOrders = orderRepository.findByUser(user);
+        return userOrders.stream()
+            .flatMap(order -> order.getProducts().stream())
+            .map(Product::getId)
+            .anyMatch(productIds::contains);
+    }
+
+    public List<GetOrderDto> getAllOrders() {
+        return orderMapper.toDtos(orderRepository.findAll());
+    }
+
     public GetOrderDto getOrderById(Long id) {
-        Order order = orderRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException(
+        Order order = orderRepository.findWithProductsById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.ORDER_NOT_FOUND, id)
             ));
         return orderMapper.toDto(order);
@@ -54,16 +71,15 @@ public class OrderService {
 
     public List<GetOrderDto> getOrdersByUser(Long userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new NoSuchElementException(
+            .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.USER_NOT_FOUND, userId)
             ));
         return orderMapper.toDtos(orderRepository.findByUser(user));
     }
 
-    @Transactional
     public GetOrderDto updateOrderStatus(Long id, Status status) {
-        Order order = orderRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException(
+        Order order = orderRepository.findWithProductsById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.ORDER_NOT_FOUND, id)
             ));
 
@@ -73,13 +89,14 @@ public class OrderService {
 
     public void deleteOrder(Long id) {
         if (!orderRepository.existsById(id)) {
-            throw new NoSuchElementException(
+            throw new ResourceNotFoundException(
                 String.format(ErrorMessages.ORDER_NOT_FOUND, id)
             );
         }
         orderRepository.deleteById(id);
     }
 }
+
 
 
 

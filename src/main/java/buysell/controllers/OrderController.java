@@ -6,6 +6,7 @@ import buysell.enums.Status;
 import buysell.services.OrderService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,9 +16,15 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping("/create")
-    public GetOrderDto createOrder(@RequestBody CreateOrderDto createOrderDto) {
+    @PostMapping
+    public GetOrderDto createOrder(@RequestBody CreateOrderDto createOrderDto)
+        throws BadRequestException {
         return orderService.createOrder(createOrderDto);
+    }
+
+    @GetMapping
+    public List<GetOrderDto> getAllOrders() {
+        return orderService.getAllOrders();
     }
 
     @GetMapping("/{id}")
