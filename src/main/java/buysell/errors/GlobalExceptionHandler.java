@@ -17,20 +17,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleNotFoundException(
         ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(Map.of("error", ex.getMessage()));
+            .body(Map.of(ErrorMessages.ERROR, ex.getMessage()));
     }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<Map<String, String>> handleBadRequestException(
         BadRequestException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(Map.of("error", ex.getMessage()));
+            .body(Map.of(ErrorMessages.ERROR, ex.getMessage()));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, String>> handleInvalidJson() {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(Map.of("error", "Invalid JSON format"));
+            .body(Map.of(ErrorMessages.ERROR, "Invalid JSON format"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneralException() {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(Map.of("error",
+            .body(Map.of(ErrorMessages.ERROR,
                 "Unexpected request format or data"));
     }
 }
