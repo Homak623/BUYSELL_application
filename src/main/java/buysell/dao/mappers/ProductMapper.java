@@ -7,7 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", config = BaseMapper.class)
 public interface ProductMapper extends BaseMapper<Product, GetProductDto> {
 
     @Mapping(target = "id", ignore = true)

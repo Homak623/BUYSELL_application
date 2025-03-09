@@ -3,6 +3,7 @@ package buysell.errors;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.coyote.BadRequestException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -59,6 +60,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(Map.of(ErrorMessages.ERROR,
                 "Unexpected request format or data"));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolation() {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(Map.of("error", "Cannot delete the product because it is used in orders"));
     }
 }
 

@@ -41,20 +41,8 @@ public class OrderService {
             throw new BadRequestException(ErrorMessages.NO_VALID_PRODUCTS);
         }
 
-        if (hasUserOrderedProducts(user, createOrderDto.getProductIds())) {
-            throw new BadRequestException(ErrorMessages.PRODUCTS_ALREADY_ORDERED);
-        }
-
         Order order = new Order(null, user, products, LocalDateTime.now(), Status.CREATED);
         return orderMapper.toDto(orderRepository.save(order));
-    }
-
-    private boolean hasUserOrderedProducts(User user, List<Long> productIds) {
-        List<Order> userOrders = orderRepository.findByUser(user);
-        return userOrders.stream()
-            .flatMap(order -> order.getProducts().stream())
-            .map(Product::getId)
-            .anyMatch(productIds::contains);
     }
 
     public List<GetOrderDto> getAllOrders() {

@@ -5,8 +5,10 @@ import buysell.dao.entityes.Product;
 import buysell.dao.get.GetProductDto;
 import buysell.dao.mappers.ProductMapper;
 import buysell.dao.repository.ProductRepository;
+import buysell.errors.CannotDeleteProductException;
 import buysell.errors.ErrorMessages;
 import buysell.errors.ResourceNotFoundException;
+import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -61,12 +63,19 @@ public class ProductService {
     }
 
     @Transactional
-    public void deleteProduct(long id) {
+    public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.PRODUCT_NOT_FOUND, id)
             ));
-        productRepository.delete(product);
+
+        try {
+            productRepository.delete(product);
+        } catch (PersistenceException e) {
+            throw new CannotDeleteProductException(
+                String.format(ErrorMessages.PRODUCT_IN_USE, id)
+            );
+        }
     }
 }
 
