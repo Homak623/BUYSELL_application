@@ -1,5 +1,6 @@
 package buysell.services;
 
+import buysell.cache.CustomCache;
 import buysell.dao.create.CreateProductDto;
 import buysell.dao.entityes.Product;
 import buysell.dao.get.GetProductDto;
@@ -20,21 +21,32 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final CustomCache<Long, GetProductDto> productCache = new CustomCache<>(20000);
 
     public GetProductDto getProductById(long id) {
+
+        GetProductDto cachedProduct = productCache.get(id);
+        if (cachedProduct != null) {
+            return cachedProduct;
+        }
+
         Product product = productRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.PRODUCT_NOT_FOUND, id)
             ));
-        return productMapper.toDto(product);
+
+        GetProductDto productDto = productMapper.toDto(product);
+
+        productCache.put(id, productDto);
+
+        return productDto;
     }
 
-    public List<GetProductDto> getFilteredProducts(String title,
-                                                   Integer price, String city, String author) {
+    public List<GetProductDto> getFilteredProducts(
+        String title, Integer price, String city, String author, String orderStatus
+    ) {
         return productMapper.toDtos(
-            productRepository.findByFilters(
-                title, price, city, author
-            )
+            productRepository.findByFilters(title, price, city, author, orderStatus)
         );
     }
 
@@ -58,8 +70,11 @@ public class ProductService {
 
         productMapper.updateProductFromDto(createProductDto, product);
         product = productRepository.save(product);
+        GetProductDto productDto = productMapper.toDto(product);
 
-        return productMapper.toDto(product);
+        productCache.put(id, productDto);
+
+        return productDto;
     }
 
     @Transactional
@@ -71,6 +86,7 @@ public class ProductService {
 
         try {
             productRepository.delete(product);
+            productCache.remove(id);
         } catch (PersistenceException e) {
             throw new CannotDeleteProductException(
                 String.format(ErrorMessages.PRODUCT_IN_USE, id)

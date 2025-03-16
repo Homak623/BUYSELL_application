@@ -1,5 +1,6 @@
 package buysell.services;
 
+import buysell.cache.CustomCache;
 import buysell.dao.create.CreateOrderDto;
 import buysell.dao.entityes.Order;
 import buysell.dao.entityes.Product;
@@ -14,7 +15,9 @@ import buysell.errors.ErrorMessages;
 import buysell.errors.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final OrderMapper orderMapper;
+    private final CustomCache<Long, GetOrderDto> orderCache = new CustomCache<>(20000);
 
     @Transactional
     public GetOrderDto createOrder(CreateOrderDto createOrderDto) throws BadRequestException {
@@ -36,7 +40,26 @@ public class OrderService {
                 String.format(ErrorMessages.USER_NOT_FOUND, createOrderDto.getUserId())
             ));
 
-        List<Product> products = productRepository.findAllById(createOrderDto.getProductIds());
+        List<Long> productIds = createOrderDto.getProductIds();
+
+        Set<Long> uniqueProductIds = new HashSet<>(productIds);
+
+        Map<Long, Product> productMap = productRepository.findAllById(uniqueProductIds)
+            .stream()
+            .collect(Collectors.toMap(Product::getId, Function.identity()));
+
+        List<Product> products = new ArrayList<>();
+        for (Long productId : productIds) {
+            Product product = productMap.get(productId);
+            if (product == null) {
+                throw new ResourceNotFoundException(
+                    String.format(ErrorMessages.PRODUCT_NOT_FOUND, productId)
+                );
+            }
+            products.add(product);
+        }
+
+
         if (products.isEmpty()) {
             throw new BadRequestException(ErrorMessages.NO_VALID_PRODUCTS);
         }
@@ -50,11 +73,22 @@ public class OrderService {
     }
 
     public GetOrderDto getOrderById(Long id) {
+
+        GetOrderDto cachedOrder = orderCache.get(id);
+        if (cachedOrder != null) {
+            return cachedOrder;
+        }
+
         Order order = orderRepository.findWithProductsById(id)
             .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.ORDER_NOT_FOUND, id)
             ));
-        return orderMapper.toDto(order);
+
+        GetOrderDto orderDto = orderMapper.toDto(order);
+
+        orderCache.put(id, orderDto);
+
+        return orderDto;
     }
 
     public List<GetOrderDto> getOrdersByUser(Long userId) {
@@ -65,6 +99,7 @@ public class OrderService {
         return orderMapper.toDtos(orderRepository.findByUser(user));
     }
 
+    @Transactional
     public GetOrderDto updateOrderStatus(Long id, Status status) {
         Order order = orderRepository.findWithProductsById(id)
             .orElseThrow(() -> new ResourceNotFoundException(
@@ -72,9 +107,15 @@ public class OrderService {
             ));
 
         order.setStatus(status);
-        return orderMapper.toDto(orderRepository.save(order));
+        GetOrderDto orderDto = orderMapper.toDto(orderRepository.save(order));
+
+        orderCache.put(id, orderDto);
+
+        return orderDto;
     }
 
+
+    @Transactional
     public void deleteOrder(Long id) {
         if (!orderRepository.existsById(id)) {
             throw new ResourceNotFoundException(
@@ -82,6 +123,8 @@ public class OrderService {
             );
         }
         orderRepository.deleteById(id);
+
+        orderCache.remove(id);
     }
 }
 

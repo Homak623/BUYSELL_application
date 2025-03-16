@@ -29,8 +29,10 @@ public class ProductController {
         @RequestParam(required = false) String title,
         @RequestParam(required = false) Integer price,
         @RequestParam(required = false) String city,
-        @RequestParam(required = false) String author) {
-        return productService.getFilteredProducts(title, price, city, author);
+        @RequestParam(required = false) String author,
+        @RequestParam(required = false) String orderStatus
+    ) {
+        return productService.getFilteredProducts(title, price, city, author, orderStatus);
     }
 
     @PostMapping

@@ -1,6 +1,7 @@
 package buysell.services;
 
 
+import buysell.cache.CustomCache;
 import buysell.dao.create.CreateUserDto;
 import buysell.dao.entityes.User;
 import buysell.dao.get.GetUserDto;
@@ -20,13 +21,24 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final CustomCache<Long, GetUserDto> userCache = new CustomCache<>(20000);
 
     public GetUserDto getUserById(Long id) {
+        GetUserDto cachedUser = userCache.get(id);
+        if (cachedUser != null) {
+            return cachedUser;
+        }
+
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.USER_NOT_FOUND, id)
             ));
-        return userMapper.toDto(user);
+
+        GetUserDto userDto = userMapper.toDto(user);
+
+        userCache.put(id, userDto);
+
+        return userDto;
     }
 
     @Transactional
@@ -59,8 +71,11 @@ public class UserService {
 
         userMapper.updateUserFromDto(createUserDto, user);
         user = userRepository.save(user);
+        GetUserDto userDto = userMapper.toDto(user);
 
-        return userMapper.toDto(user);
+        userCache.put(id, userDto);
+
+        return userDto;
     }
 
     @Transactional
@@ -70,6 +85,8 @@ public class UserService {
                 String.format(ErrorMessages.USER_NOT_FOUND, id)
             ));
         userRepository.delete(user);
+
+        userCache.remove(id);
     }
 
     public List<GetUserDto> getAllUsers() {
