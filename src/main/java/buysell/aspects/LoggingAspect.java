@@ -23,10 +23,9 @@ public class LoggingAspect {
     @Before("allServiceMethods() || annotatedMethods()")
     public void logBefore(JoinPoint joinPoint) {
         String methodName = joinPoint.getSignature().getName();
-        Object[] args = joinPoint.getArgs();
 
         if (shouldLog(methodName)) {
-            LOGGER.info(">> {}() - args: {}", methodName, Arrays.toString(args));
+            LOGGER.info(">> {}()", methodName);
         }
     }
 
