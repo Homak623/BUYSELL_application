@@ -6,6 +6,8 @@ import buysell.dao.entityes.Product;
 import buysell.dao.get.GetProductDto;
 import buysell.dao.mappers.ProductMapper;
 import buysell.dao.repository.ProductRepository;
+import buysell.enums.Status;
+import buysell.errors.BadRequestException;
 import buysell.errors.CannotDeleteProductException;
 import buysell.errors.ErrorMessages;
 import buysell.errors.ResourceNotFoundException;
@@ -13,33 +15,55 @@ import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
-    private final CustomCache<Long, GetProductDto> productCache = new CustomCache<>(20000);
+    private final CustomCache<Long, GetProductDto> productCache;
 
     public GetProductDto getProductById(long id) {
-
         GetProductDto cachedProduct = productCache.get(id);
         if (cachedProduct != null) {
+            log.info("Cache hit for Product ID: {}", id);
             return cachedProduct;
         }
 
+        log.info("Cache miss for Product ID: {}", id);
         Product product = productRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(
                 String.format(ErrorMessages.PRODUCT_NOT_FOUND, id)
             ));
 
         GetProductDto productDto = productMapper.toDto(product);
-
         productCache.put(id, productDto);
+        log.info("Product ID {} added to cache", id);
 
         return productDto;
+    }
+
+    @Transactional
+    public void deleteProduct(Long id) {
+        Product product = productRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(
+                String.format(ErrorMessages.PRODUCT_NOT_FOUND, id)
+            ));
+
+        try {
+            productRepository.delete(product);
+            productCache.remove(id);
+            log.info("Product ID {} removed from cache and deleted", id);
+        } catch (PersistenceException e) {
+            log.error("Failed to delete Product ID {}: {}", id, e.getMessage());
+            throw new CannotDeleteProductException(
+                String.format(ErrorMessages.PRODUCT_IN_USE, id)
+            );
+        }
     }
 
     public List<GetProductDto> getFilteredProducts(
@@ -49,6 +73,24 @@ public class ProductService {
             productRepository.findByFilters(title, price, city, author, orderStatus)
         );
     }
+
+    public List<GetProductDto> getFilteredProductsJPQL(
+        String title, Integer price, String city, String author, String orderStatus
+    ) throws BadRequestException {
+        Status statusEnum = null;
+        if (orderStatus != null && !orderStatus.isEmpty()) {
+            try {
+                statusEnum = Status.valueOf(orderStatus.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("Invalid order status: " + orderStatus);
+            }
+        }
+
+        return productMapper.toDtos(
+            productRepository.findByFiltersJPQL(title, price, city, author, statusEnum)
+        );
+    }
+
 
     public List<GetProductDto> getAllProducts() {
         return productMapper.toDtos(productRepository.findAll());
@@ -75,23 +117,6 @@ public class ProductService {
         productCache.put(id, productDto);
 
         return productDto;
-    }
-
-    @Transactional
-    public void deleteProduct(Long id) {
-        Product product = productRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(
-                String.format(ErrorMessages.PRODUCT_NOT_FOUND, id)
-            ));
-
-        try {
-            productRepository.delete(product);
-            productCache.remove(id);
-        } catch (PersistenceException e) {
-            throw new CannotDeleteProductException(
-                String.format(ErrorMessages.PRODUCT_IN_USE, id)
-            );
-        }
     }
 }
 

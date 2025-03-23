@@ -2,7 +2,6 @@ package buysell.errors;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.coyote.BadRequestException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +65,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolation() {
         return ResponseEntity.status(HttpStatus.CONFLICT)
             .body(Map.of("error", "Cannot delete the product because it is used in orders"));
+    }
+
+    @ExceptionHandler(LogReadException.class)
+    public ResponseEntity<String> handleLogReadException(LogReadException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
 }
 

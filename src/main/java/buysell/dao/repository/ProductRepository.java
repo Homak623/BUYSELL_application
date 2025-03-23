@@ -1,6 +1,7 @@
 package buysell.dao.repository;
 
 import buysell.dao.entityes.Product;
+import buysell.enums.Status;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,6 +27,22 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         @Param("author") String author,
         @Param("orderStatus") String orderStatus
     );
+
+    @Query("SELECT DISTINCT p FROM Product p "
+        + "LEFT JOIN p.orders o "
+        + "WHERE (:title IS NULL OR LOWER(p.title) LIKE LOWER(CONCAT('%', :title, '%'))) "
+        + "AND (:price IS NULL OR p.price = :price) "
+        + "AND (:city IS NULL OR LOWER(p.city) LIKE LOWER(CONCAT('%', :city, '%'))) "
+        + "AND (:author IS NULL OR LOWER(p.author) LIKE LOWER(CONCAT('%', :author, '%'))) "
+        + "AND (:orderStatus IS NULL OR o.status = :orderStatus OR :orderStatus IS NULL)")
+    List<Product> findByFiltersJPQL(
+        @Param("title") String title,
+        @Param("price") Integer price,
+        @Param("city") String city,
+        @Param("author") String author,
+        @Param("orderStatus") Status orderStatus
+    );
+
 }
 
 
