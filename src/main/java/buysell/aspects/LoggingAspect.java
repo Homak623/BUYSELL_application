@@ -24,7 +24,14 @@ public class LoggingAspect {
     public void logBefore(JoinPoint joinPoint) {
         String methodName = joinPoint.getSignature().getName();
         Object[] args = joinPoint.getArgs();
-        LOGGER.info(">> {}() - args: {}", methodName, Arrays.toString(args));
+
+        if (shouldLog(methodName)) {
+            LOGGER.info(">> {}() - args: {}", methodName, Arrays.toString(args));
+        }
+    }
+
+    private boolean shouldLog(String methodName) {
+        return methodName.startsWith("update");
     }
 
     @AfterReturning(pointcut = "allServiceMethods() || annotatedMethods()", returning = "result")

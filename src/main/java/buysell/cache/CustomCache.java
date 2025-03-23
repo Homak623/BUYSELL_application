@@ -21,7 +21,6 @@ public class CustomCache<K, V> {
     public CustomCache() {
         this.maxAgeInMillis = 60000;
         this.maxSize = 1000;
-
         this.cache = new LinkedHashMap<K, V>(maxSize, 0.75f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
