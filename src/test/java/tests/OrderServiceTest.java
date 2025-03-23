@@ -29,7 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(MockitoExtension.class)
-public class OrderServiceTest {
+class OrderServiceTest {
 
     @Mock
     private OrderRepository orderRepository;
@@ -107,7 +107,7 @@ public class OrderServiceTest {
     void createBulkOrders_EmptyList() {
 
         CreateBulkOrderDto bulkOrderDto = new CreateBulkOrderDto();
-        bulkOrderDto.setOrders(List.of()); // Пустой список заказов
+        bulkOrderDto.setOrders(List.of());
 
         List<GetOrderDto> result = orderService.createBulkOrders(bulkOrderDto);
 
@@ -118,14 +118,14 @@ public class OrderServiceTest {
     @Test
     void createOrder_NoValidProducts() {
 
-        CreateOrderDto createOrderDto = new CreateOrderDto();
+        CreateOrderDto order = new CreateOrderDto();
         createOrderDto.setUserId(1L);
         createOrderDto.setProductIds(List.of());
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(productRepository.findAllById(anySet())).thenReturn(List.of());
 
-        assertThrows(BadRequestException.class, () -> orderService.createOrder(createOrderDto));
+        assertThrows(BadRequestException.class, () -> orderService.createOrder(order));
         verify(userRepository, times(1)).findById(1L);
         verify(productRepository, times(1)).findAllById(anySet());
     }

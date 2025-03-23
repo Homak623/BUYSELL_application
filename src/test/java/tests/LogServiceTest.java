@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 @ExtendWith(MockitoExtension.class)
-public class LogServiceTest {
+class LogServiceTest {
 
     @InjectMocks
     private LogService logService;
