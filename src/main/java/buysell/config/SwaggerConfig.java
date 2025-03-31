@@ -1,4 +1,4 @@
-package buysell.swagger;
+package buysell.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Contact;

@@ -34,6 +34,25 @@ public class CustomCache<K, V> {
         };
     }
 
+    public CustomCache(long maxAgeInMillis, int maxSize) {
+        this.maxAgeInMillis = maxAgeInMillis;
+        this.maxSize = maxSize;
+
+        this.cache = new LinkedHashMap<K, V>(maxSize, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+                boolean shouldRemove = size() > maxSize;
+                if (shouldRemove) {
+                    String logMessage = String.format("Removing eldest entry:"
+                           + " %s=%s (Cache size: %d)",
+                        eldest.getKey(), eldest.getValue(), size());
+                    log.info(logMessage);
+                }
+                return shouldRemove;
+            }
+        };
+    }
+
     public synchronized void put(K key, V value) {
         cache.put(key, value);
         log.info("Added entry: {}={} (Cache size: {})", key, value, cache.size());

@@ -8,6 +8,9 @@ import buysell.services.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +27,7 @@ public class OrderController {
     @Operation(summary = "Создать заказ", description = "Создает новый заказ")
     @ApiResponse(responseCode = "200", description = "Заказ успешно создан")
     @ApiResponse(responseCode = "400", description = "Некорректные данные запроса")
-    public GetOrderDto createOrder(@RequestBody CreateOrderDto createOrderDto) {
+    public GetOrderDto createOrder(@Valid @RequestBody CreateOrderDto createOrderDto) {
         return orderService.createOrder(createOrderDto);
     }
 
@@ -33,7 +36,8 @@ public class OrderController {
         description = "Создает несколько заказов за один запрос")
     @ApiResponse(responseCode = "200", description = "Заказы успешно созданы")
     @ApiResponse(responseCode = "400", description = "Некорректные данные запроса")
-    public List<GetOrderDto> createBulkOrders(@RequestBody CreateBulkOrderDto createBulkOrderDto) {
+    public List<GetOrderDto> createBulkOrders(@Valid @RequestBody
+                                                  CreateBulkOrderDto createBulkOrderDto) {
         return orderService.createBulkOrders(createBulkOrderDto);
     }
 
@@ -49,7 +53,7 @@ public class OrderController {
         description = "Возвращает заказ по его идентификатору")
     @ApiResponse(responseCode = "200", description = "Заказ успешно найден")
     @ApiResponse(responseCode = "404", description = "Заказ не найден")
-    public GetOrderDto getOrderById(@PathVariable Long id) {
+    public GetOrderDto getOrderById(@PathVariable @Min(1) Long id) {
         return orderService.getOrderById(id);
     }
 
@@ -58,7 +62,7 @@ public class OrderController {
         description = "Возвращает список заказов для указанного пользователя")
     @ApiResponse(responseCode = "200", description = "Список заказов успешно получен")
     @ApiResponse(responseCode = "404", description = "Пользователь не найден")
-    public List<GetOrderDto> getOrdersByUser(@PathVariable Long userId) {
+    public List<GetOrderDto> getOrdersByUser(@PathVariable @Min(1) Long userId) {
         return orderService.getOrdersByUser(userId);
     }
 
@@ -67,7 +71,9 @@ public class OrderController {
         description = "Обновляет статус заказа по его идентификатору")
     @ApiResponse(responseCode = "200", description = "Статус заказа успешно обновлен")
     @ApiResponse(responseCode = "404", description = "Заказ не найден")
-    public GetOrderDto updateOrderStatus(@PathVariable Long id, @RequestParam Status status) {
+    public GetOrderDto updateOrderStatus(
+        @PathVariable @Min(1) Long id,
+        @RequestParam @NotNull Status status) {
         return orderService.updateOrderStatus(id, status);
     }
 
@@ -76,7 +82,7 @@ public class OrderController {
         description = "Удаляет заказ по его идентификатору")
     @ApiResponse(responseCode = "200", description = "Заказ успешно удален")
     @ApiResponse(responseCode = "404", description = "Заказ не найден")
-    public void deleteOrder(@PathVariable Long id) {
+    public void deleteOrder(@PathVariable @Min(1) Long id) {
         orderService.deleteOrder(id);
     }
 }

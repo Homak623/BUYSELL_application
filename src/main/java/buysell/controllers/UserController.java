@@ -6,6 +6,8 @@ import buysell.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +24,7 @@ public class UserController {
     @Operation(summary = "Создать пользователя", description = "Создает нового пользователя")
     @ApiResponse(responseCode = "200", description = "Пользователь успешно создан")
     @ApiResponse(responseCode = "400", description = "Некорректные данные запроса")
-    public GetUserDto createUser(@RequestBody CreateUserDto createUserDto) {
+    public GetUserDto createUser(@Valid @RequestBody CreateUserDto createUserDto) {
         return userService.createUser(createUserDto);
     }
 
@@ -31,7 +33,7 @@ public class UserController {
         description = "Возвращает пользователя по его идентификатору")
     @ApiResponse(responseCode = "200", description = "Пользователь успешно найден")
     @ApiResponse(responseCode = "404", description = "Пользователь не найден")
-    public GetUserDto getUserById(@PathVariable Long id) {
+    public GetUserDto getUserById(@PathVariable @Min(1) Long id) {
         return userService.getUserById(id);
     }
 
@@ -48,8 +50,9 @@ public class UserController {
         description = "Обновляет пользователя по его идентификатору")
     @ApiResponse(responseCode = "200", description = "Пользователь успешно обновлен")
     @ApiResponse(responseCode = "404", description = "Пользователь не найден")
-    public GetUserDto updateUser(@PathVariable Long id, @RequestBody
-        CreateUserDto createUserDto) {
+    public GetUserDto updateUser(
+        @PathVariable @Min(1) Long id,
+        @Valid @RequestBody CreateUserDto createUserDto) {
         return userService.updateUser(id, createUserDto);
     }
 
@@ -58,7 +61,7 @@ public class UserController {
         description = "Удаляет пользователя по его идентификатору")
     @ApiResponse(responseCode = "200", description = "Пользователь успешно удален")
     @ApiResponse(responseCode = "404", description = "Пользователь не найден")
-    public void deleteUser(@PathVariable Long id) {
+    public void deleteUser(@PathVariable @Min(1) Long id) {
         userService.deleteUser(id);
     }
 }

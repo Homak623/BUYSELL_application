@@ -71,7 +71,6 @@ public class OrderService {
             products.add(product);
         }
 
-
         if (products.isEmpty()) {
             throw new BadRequestException(ErrorMessages.NO_VALID_PRODUCTS);
         }

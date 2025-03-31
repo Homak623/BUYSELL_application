@@ -6,6 +6,8 @@ import buysell.services.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +25,7 @@ public class ProductController {
         description = "Возвращает товар по его идентификатору")
     @ApiResponse(responseCode = "200", description = "Товар успешно найден")
     @ApiResponse(responseCode = "404", description = "Товар не найден")
-    public GetProductDto getProductById(@PathVariable long id) {
+    public GetProductDto getProductById(@PathVariable @Min(1) long id) {
         return productService.getProductById(id);
     }
 
@@ -40,7 +42,7 @@ public class ProductController {
     @ApiResponse(responseCode = "200", description = "Список товаров успешно отфильтрован")
     public List<GetProductDto> getProducts(
         @RequestParam(required = false) String title,
-        @RequestParam(required = false) Integer price,
+        @RequestParam(required = false) @Min(0) Integer price,
         @RequestParam(required = false) String city,
         @RequestParam(required = false) String author,
         @RequestParam(required = false) String orderStatus
@@ -52,7 +54,7 @@ public class ProductController {
     @Operation(summary = "Создать товар", description = "Создает новый товар")
     @ApiResponse(responseCode = "200", description = "Товар успешно создан")
     @ApiResponse(responseCode = "400", description = "Некорректные данные запроса")
-    public GetProductDto createProduct(@RequestBody CreateProductDto productDto) {
+    public GetProductDto createProduct(@Valid @RequestBody CreateProductDto productDto) {
         return productService.createProduct(productDto);
     }
 
@@ -60,8 +62,9 @@ public class ProductController {
     @Operation(summary = "Обновить товар", description = "Обновляет товар по его идентификатору")
     @ApiResponse(responseCode = "200", description = "Товар успешно обновлен")
     @ApiResponse(responseCode = "404", description = "Товар не найден")
-    public GetProductDto updateProduct(@PathVariable Long id,
-                                       @RequestBody CreateProductDto productDto) {
+    public GetProductDto updateProduct(
+        @PathVariable @Min(1) Long id,
+        @Valid @RequestBody CreateProductDto productDto) {
         return productService.updateProduct(id, productDto);
     }
 
@@ -69,7 +72,7 @@ public class ProductController {
     @Operation(summary = "Удалить товар", description = "Удаляет товар по его идентификатору")
     @ApiResponse(responseCode = "200", description = "Товар успешно удален")
     @ApiResponse(responseCode = "404", description = "Товар не найден")
-    public void deleteProduct(@PathVariable Long id) {
+    public void deleteProduct(@PathVariable @Min(1) Long id) {
         productService.deleteProduct(id);
     }
 
@@ -79,7 +82,7 @@ public class ProductController {
     @ApiResponse(responseCode = "200", description = "Список товаров успешно отфильтрован")
     public List<GetProductDto> getProductsJPQL(
         @RequestParam(required = false) String title,
-        @RequestParam(required = false) Integer price,
+        @RequestParam(required = false) @Min(0) Integer price,
         @RequestParam(required = false) String city,
         @RequestParam(required = false) String author,
         @RequestParam(required = false) String orderStatus

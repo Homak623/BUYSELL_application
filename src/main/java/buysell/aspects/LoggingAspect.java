@@ -1,5 +1,6 @@
 package buysell.aspects;
 
+import java.util.Arrays;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.slf4j.Logger;
@@ -22,9 +23,10 @@ public class LoggingAspect {
     @Before("allServiceMethods() || annotatedMethods()")
     public void logBefore(JoinPoint joinPoint) {
         String methodName = joinPoint.getSignature().getName();
+        Object[] args = joinPoint.getArgs();
 
         if (shouldLog(methodName)) {
-            LOGGER.info(">> {}()", methodName);
+            LOGGER.info(">> {}() - args: {}", methodName, Arrays.toString(args));
         }
     }
 

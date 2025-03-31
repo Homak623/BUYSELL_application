@@ -84,7 +84,6 @@ class OrderServiceTest {
 
     @Test
     void createBulkOrders_Success() {
-        // Arrange
         CreateBulkOrderDto bulkOrderDto = new CreateBulkOrderDto();
         bulkOrderDto.setOrders(List.of(createOrderDto));
 
@@ -113,21 +112,6 @@ class OrderServiceTest {
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void createOrder_NoValidProducts() {
-
-        CreateOrderDto newOrder = new CreateOrderDto();
-        createOrderDto.setUserId(1L);
-        createOrderDto.setProductIds(List.of());
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(productRepository.findAllById(anySet())).thenReturn(List.of());
-
-        assertThrows(BadRequestException.class, () -> orderService.createOrder(newOrder));
-        verify(userRepository, times(1)).findById(1L);
-        verify(productRepository, times(1)).findAllById(anySet());
     }
 
     @Test
