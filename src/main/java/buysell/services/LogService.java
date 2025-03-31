@@ -1,4 +1,4 @@
-package buysell.interceptors;
+package buysell.services;
 
 import jakarta.annotation.PostConstruct;
 import java.io.FileNotFoundException;
@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 @Data
-public class LogServiceInterceptor {
+public class LogService {
     private static final String LOG_FILE_PATH = "logs/application.log";
     private static final String LOGS_DIR = "logs/";
     private static final String META_FILE = "logs/.metadata";

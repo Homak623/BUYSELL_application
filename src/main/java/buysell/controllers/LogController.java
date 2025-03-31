@@ -1,6 +1,6 @@
 package buysell.controllers;
 
-import buysell.interceptors.LogServiceInterceptor;
+import buysell.services.LogService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Tag(name = "Log Controller", description = "API for logs")
 public class LogController {
-    private final LogServiceInterceptor logServiceInterceptor;
+    private final LogService logServiceInterceptor;
 
     @PostMapping("/{date}")
     public ResponseEntity<Map<String, Object>> generateLogsByDate(
