@@ -8,13 +8,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-    @Autowired
     private VisitCounterInterceptor visitCounterInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(visitCounterInterceptor)
             .addPathPatterns("/**")
-            .excludePathPatterns("/visits/**"); // Чтобы не учитывать свои же запросы
+            .excludePathPatterns("/visits/**");
     }
 }

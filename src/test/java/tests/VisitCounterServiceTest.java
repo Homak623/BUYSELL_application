@@ -21,8 +21,8 @@ class VisitCounterServiceTest {
 
     @Test
     void incrementCount_shouldIncrementTotalCounter() {
-        visitCounterService.incrementCount("/test");
-        visitCounterService.incrementCount("/test2");
+        visitCounterService.incrementVisitCount("/test");
+        visitCounterService.incrementVisitCount("/test2");
 
         assertThat(visitCounterService.getTotalVisitCount()).isEqualTo(2);
     }
@@ -30,9 +30,9 @@ class VisitCounterServiceTest {
     @Test
     void incrementCount_shouldIncrementUrlCounter() {
 
-        visitCounterService.incrementCount("/test");
-        visitCounterService.incrementCount("/test");
-        visitCounterService.incrementCount("/test2");
+        visitCounterService.incrementVisitCount("/test");
+        visitCounterService.incrementVisitCount("/test");
+        visitCounterService.incrementVisitCount("/test2");
 
         assertThat(visitCounterService.getVisitCount("/test")).isEqualTo(2);
         assertThat(visitCounterService.getVisitCount("/test2")).isEqualTo(1);
@@ -40,7 +40,7 @@ class VisitCounterServiceTest {
 
     @Test
     void incrementCount_shouldHandleNewUrl() {
-        visitCounterService.incrementCount("/new-url");
+        visitCounterService.incrementVisitCount("/new-url");
 
         assertThat(visitCounterService.getVisitCount("/new-url")).isEqualTo(1);
     }
@@ -57,9 +57,9 @@ class VisitCounterServiceTest {
 
     @Test
     void getAllVisitCounts_shouldReturnAllCounters() {
-        visitCounterService.incrementCount("/url1");
-        visitCounterService.incrementCount("/url1");
-        visitCounterService.incrementCount("/url2");
+        visitCounterService.incrementVisitCount("/url1");
+        visitCounterService.incrementVisitCount("/url1");
+        visitCounterService.incrementVisitCount("/url2");
 
         Map<String, Integer> result = visitCounterService.getAllVisitCounts();
 
@@ -82,7 +82,7 @@ class VisitCounterServiceTest {
 
         Runnable task = () -> {
             for (int i = 0; i < incrementsPerThread; i++) {
-                visitCounterService.incrementCount(testUrl);
+                visitCounterService.incrementVisitCount(testUrl);
             }
         };
 
@@ -105,8 +105,8 @@ class VisitCounterServiceTest {
 
     @Test
     void service_shouldHandleEmptyUrl() {
-        visitCounterService.incrementCount("");
-        visitCounterService.incrementCount("");
+        visitCounterService.incrementVisitCount("");
+        visitCounterService.incrementVisitCount("");
 
         assertThat(visitCounterService.getVisitCount("")).isEqualTo(2);
         assertThat(visitCounterService.getTotalVisitCount()).isEqualTo(2);

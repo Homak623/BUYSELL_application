@@ -71,6 +71,21 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleLogReadException(LogReadException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
+
+    @ExceptionHandler(LogProcessingException.class)
+    public ResponseEntity<Map<String, String>> handleLogProcessingException(
+        LogProcessingException ex) {
+
+        String taskId = ex.getMessage().contains("taskId=")
+            ? ex.getMessage().split("taskId=")[1]
+            : "UNKNOWN";
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+            "taskId", taskId,
+            "status", "FAILED",
+            "error", ex.getMessage()
+        ));
+    }
 }
 
 

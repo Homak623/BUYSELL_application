@@ -10,7 +10,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 @Component
 public class VisitCounterInterceptor implements HandlerInterceptor {
-    @Autowired
+
     private VisitCounterService visitCounterService;
 
     @Override
@@ -20,6 +20,6 @@ public class VisitCounterInterceptor implements HandlerInterceptor {
                            ModelAndView modelAndView) {
 
         String url = request.getRequestURI();
-        visitCounterService.incrementCount(url);
+        visitCounterService.incrementVisitCount(url);
     }
 }

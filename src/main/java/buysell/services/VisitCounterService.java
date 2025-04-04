@@ -8,37 +8,21 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class VisitCounterService {
+    private final Map<String, Integer> visitCounts = new ConcurrentHashMap<>();
 
-    private final AtomicLong totalVisits = new AtomicLong(0);
-
-    private final ConcurrentHashMap<String, AtomicLong> urlCounters = new ConcurrentHashMap<>();
-
-    public void incrementCount(String url) {
-
-        totalVisits.incrementAndGet();
-
-        urlCounters.compute(url, (key, counter) -> {
-            if (counter == null) {
-                return new AtomicLong(1);
-            }
-            counter.incrementAndGet();
-            return counter;
-        });
+    public void incrementVisitCount(String url) {
+        visitCounts.compute(url, (key, value) -> value == null ? 1 : value + 1);
     }
 
     public int getVisitCount(String url) {
-        return urlCounters.getOrDefault(url, new AtomicLong(0)).intValue();
+        return visitCounts.getOrDefault(url, 0);
     }
 
     public int getTotalVisitCount() {
-        return totalVisits.intValue();
+        return visitCounts.values().stream().mapToInt(Integer::intValue).sum();
     }
 
     public Map<String, Integer> getAllVisitCounts() {
-        return urlCounters.entrySet().stream()
-            .collect(Collectors.toMap(
-                Map.Entry::getKey,
-                e -> e.getValue().intValue()
-            ));
+        return new ConcurrentHashMap<>(visitCounts);
     }
 }
