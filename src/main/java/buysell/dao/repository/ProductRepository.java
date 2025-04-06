@@ -43,6 +43,20 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         @Param("orderStatus") Status orderStatus
     );
 
+    @Query(value = "SELECT p.* FROM products p " +
+        "WHERE (:title IS NULL OR p.title ILIKE '%' || :title || '%') " +
+        "AND (:minPrice IS NULL OR p.price >= :minPrice) " +
+        "AND (:maxPrice IS NULL OR p.price <= :maxPrice) " +
+        "AND (:city IS NULL OR p.city ILIKE '%' || :city || '%') " +
+        "AND (:author IS NULL OR p.author ILIKE '%' || :author || '%')",
+        nativeQuery = true)
+    List<Product> findByPriceRange(
+        @Param("title") String title,
+        @Param("minPrice") Double minPrice,
+        @Param("maxPrice") Double maxPrice,
+        @Param("city") String city,
+        @Param("author") String author
+    );
 }
 
 

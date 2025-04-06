@@ -1,15 +1,19 @@
 package buysell.controllers;
 
 import buysell.dao.create.CreateProductDto;
+import buysell.dao.entityes.Product;
 import buysell.dao.get.GetProductDto;
 import buysell.services.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -88,6 +92,19 @@ public class ProductController {
         @RequestParam(required = false) String orderStatus
     ) {
         return productService.getFilteredProducts(title, price, city, author, orderStatus);
+    }
+
+    @GetMapping("/range")
+    @Operation(summary = "Фильтрация товаров по диапазону цен")
+    public List<GetProductDto> getProductsByPriceRange(
+        @RequestParam(required = false) String title,
+        @RequestParam(required = false) @DecimalMin("0.0") Double minPrice,
+        @RequestParam(required = false) @DecimalMin("0.0") Double maxPrice,
+        @RequestParam(required = false) String city,
+        @RequestParam(required = false) String author) {
+
+        return productService.findByPriceRange(
+            title, minPrice, maxPrice, city, author, null);
     }
 }
 
