@@ -1,7 +1,6 @@
 package buysell.controllers;
 
 import buysell.dao.create.CreateProductDto;
-import buysell.dao.entityes.Product;
 import buysell.dao.get.GetProductDto;
 import buysell.services.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,9 +10,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -104,7 +101,7 @@ public class ProductController {
         @RequestParam(required = false) String author) {
 
         return productService.findByPriceRange(
-            title, minPrice, maxPrice, city, author, null);
+            title, minPrice, maxPrice, city, author);
     }
 }
 

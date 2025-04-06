@@ -13,13 +13,19 @@ import {
     Drawer,
     Divider,
     List,
-    InputNumber
+    InputNumber,
+    Card,
+    Row,
+    Col
 } from 'antd';
 import {
+    AppstoreOutlined,
+    PlusOutlined,
+    DeleteOutlined
+} from '@ant-design/icons';
+import {
     getOrders,
-    getOrderById,
     createOrder,
-    updateOrder,
     deleteOrder,
     updateOrderStatus,
     getOrdersByUser,
@@ -34,16 +40,15 @@ const OrdersPage = () => {
     const [orders, setOrders] = useState([]);
     const [users, setUsers] = useState([]);
     const [products, setProducts] = useState([]);
-    const [isModalVisible, setIsModalVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [searchUserId, setSearchUserId] = useState(null);
-    const [form] = Form.useForm();
 
-    // Состояния для массового создания
-    const [bulkCreateVisible, setBulkCreateVisible] = useState(false);
-    const [selectedUsers, setSelectedUsers] = useState([]);
-    const [selectedProducts, setSelectedProducts] = useState([]);
-    const [productQuantities, setProductQuantities] = useState({});
+    const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+    const [createForm] = Form.useForm();
+
+    const [isBulkCreateVisible, setIsBulkCreateVisible] = useState(false);
+    const [bulkCreateForm] = Form.useForm();
+    const [selectedBulkProducts, setSelectedBulkProducts] = useState([]);
 
     const statusColors = {
         CREATED: 'blue',
@@ -55,74 +60,88 @@ const OrdersPage = () => {
     };
 
     useEffect(() => {
-        fetchOrders();
-        fetchUsersAndProducts();
+        fetchData();
     }, [searchUserId]);
 
-    const fetchOrders = async () => {
+    const fetchData = async () => {
         try {
             setLoading(true);
-            const data = searchUserId
-                ? await getOrdersByUser(searchUserId)
-                : await getOrders();
-            setOrders(data || []);
+            const [ordersData, usersData, productsData] = await Promise.all([
+                searchUserId ? getOrdersByUser(searchUserId) : getOrders(),
+                getUsers(),
+                getProducts()
+            ]);
+
+            setOrders(ordersData || []);
+            setUsers(usersData || []);
+            setProducts(productsData || []);
         } catch (error) {
-            message.error('Failed to fetch orders');
+            message.error('Failed to fetch data');
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchUsersAndProducts = async () => {
-        try {
-            const [usersData, productsData] = await Promise.all([
-                getUsers(),
-                getProducts()
-            ]);
-            setUsers(usersData || []);
-            setProducts(productsData || []);
-        } catch (error) {
-            message.error('Failed to fetch additional data');
-        }
-    };
-
-    const enrichOrders = (ordersData) => {
-        return ordersData.map(order => ({
+    const enrichOrders = () => {
+        return orders.map(order => ({
             ...order,
             user: users.find(u => u.id === order.userId),
             products: products.filter(p => order.productIds.includes(p.id))
         }));
     };
 
-    const handleCreate = async () => {
+    const handleCreateOrder = async () => {
         try {
-            const values = await form.validateFields();
-            // Преобразуем массив товаров с учетом количества
-            const productIds = [];
-            values.products.forEach(item => {
-                for (let i = 0; i < item.quantity; i++) {
-                    productIds.push(item.productId);
-                }
-            });
+            const values = await createForm.validateFields();
+
+            // Формируем productIds с учетом количества
+            const productIds = values.products.flatMap(item =>
+                Array(item.quantity).fill(item.productId)
+            );
 
             await createOrder({
                 userId: values.userId,
                 productIds,
                 status: 'CREATED'
             });
+
             message.success('Order created successfully');
-            resetModal();
-            await fetchOrders();
+            createForm.resetFields();
+            setIsCreateModalVisible(false);
+            await fetchData();
         } catch (error) {
             message.error('Error creating order');
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleBulkCreate = async () => {
+        try {
+            const values = await bulkCreateForm.validateFields();
+
+            // Формируем массив заказов
+            const ordersToCreate = values.users.map(userId => ({
+                userId,
+                productIds: selectedBulkProducts.flatMap(product =>
+                    Array(product.quantity).fill(product.id))
+            }));
+
+            await createBulkOrders({ orders: ordersToCreate });
+
+            message.success(`Successfully created ${ordersToCreate.length} orders`);
+            bulkCreateForm.resetFields();
+            setSelectedBulkProducts([]);
+            setIsBulkCreateVisible(false);
+            await fetchData();
+        } catch (error) {
+            message.error('Error creating bulk orders');
+        }
+    };
+
+    const handleDeleteOrder = async (id) => {
         try {
             await deleteOrder(id);
             message.success('Order deleted successfully');
-            await fetchOrders();
+            await fetchData();
         } catch (error) {
             message.error('Error deleting order');
         }
@@ -132,50 +151,30 @@ const OrdersPage = () => {
         try {
             await updateOrderStatus(id, status);
             message.success('Order status updated');
-            await fetchOrders();
+            await fetchData();
         } catch (error) {
             message.error('Error updating status');
         }
     };
 
-    const handleBulkCreate = async () => {
-        try {
-            if (selectedUsers.length === 0 || selectedProducts.length === 0) {
-                message.warning('Please select at least one user and one product');
-                return;
-            }
-
-            const bulkOrders = selectedUsers.flatMap(userId =>
-                selectedProducts.map(productId => ({
-                    userId,
-                    productIds: Array(productQuantities[productId] || 1).fill(productId),
-                    status: 'CREATED'
-                }))
-            );
-
-            await createBulkOrders({ orders: bulkOrders });
-            message.success(`Successfully created ${bulkOrders.length} orders`);
-            setBulkCreateVisible(false);
-            setSelectedUsers([]);
-            setSelectedProducts([]);
-            setProductQuantities({});
-            await fetchOrders();
-        } catch (error) {
-            console.error('Bulk create error:', error);
-            message.error(`Failed to create bulk orders: ${error.message}`);
-        }
+    const addBulkProduct = () => {
+        bulkCreateForm.validateFields(['product', 'quantity']).then(values => {
+            setSelectedBulkProducts(prev => [
+                ...prev,
+                {
+                    id: values.product,
+                    quantity: values.quantity,
+                    product: products.find(p => p.id === values.product)
+                }
+            ]);
+            bulkCreateForm.resetFields(['product', 'quantity']);
+        }).catch(() => {
+            message.warning('Please select a product and quantity');
+        });
     };
 
-    const resetModal = () => {
-        form.resetFields();
-        setIsModalVisible(false);
-    };
-
-    const handleQuantityChange = (productId, value) => {
-        setProductQuantities(prev => ({
-            ...prev,
-            [productId]: value
-        }));
+    const removeBulkProduct = (productId) => {
+        setSelectedBulkProducts(prev => prev.filter(p => p.id !== productId));
     };
 
     const columns = [
@@ -205,20 +204,20 @@ const OrdersPage = () => {
             key: 'products',
             render: (_, order) => {
                 const productCounts = {};
-                order.products?.forEach(product => {
-                    productCounts[product.id] = (productCounts[product.id] || 0) + 1;
+                order.productIds.forEach(id => {
+                    productCounts[id] = (productCounts[id] || 0) + 1;
                 });
 
                 return (
                     <Space wrap>
                         {Object.keys(productCounts).length > 0 ? (
-                            Object.entries(productCounts).map(([productId, count]) => {
-                                const product = products.find(p => p.id === parseInt(productId));
-                                return (
-                                    <Tag key={productId}>
-                                        {product?.title} (${product?.price}) × {count}
+                            Object.entries(productCounts).map(([id, count]) => {
+                                const product = products.find(p => p.id === parseInt(id));
+                                return product ? (
+                                    <Tag key={id}>
+                                        {product.title} (${product.price}) × {count}
                                     </Tag>
-                                );
+                                ) : null;
                             })
                         ) : (
                             <Tag color="warning">No products</Tag>
@@ -239,9 +238,7 @@ const OrdersPage = () => {
                     {Object.keys(statusColors).map(status => (
                         <Option key={status} value={status}>
                             <Tag color={statusColors[status]}>
-                                {status.split('_').map(word =>
-                                    word.charAt(0) + word.slice(1).toLowerCase()
-                                ).join(' ')}
+                                {status.split('_').join(' ')}
                             </Tag>
                         </Option>
                     ))}
@@ -266,11 +263,11 @@ const OrdersPage = () => {
                 <Space>
                     <Popconfirm
                         title="Are you sure to delete this order?"
-                        onConfirm={() => handleDelete(order.id)}
+                        onConfirm={() => handleDeleteOrder(order.id)}
                         okText="Yes"
                         cancelText="No"
                     >
-                        <Button danger>Delete</Button>
+                        <Button danger icon={<DeleteOutlined />}>Delete</Button>
                     </Popconfirm>
                 </Space>
             ),
@@ -279,49 +276,63 @@ const OrdersPage = () => {
 
     return (
         <Spin spinning={loading}>
-            <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
-                <Button
-                    type="primary"
-                    onClick={() => setIsModalVisible(true)}
-                >
-                    Create Order
-                </Button>
-                <Button onClick={() => setBulkCreateVisible(true)}>
-                    Bulk Create Orders
-                </Button>
-
-                <Select
-                    placeholder="Filter by user"
-                    style={{ width: 200 }}
-                    allowClear
-                    onChange={setSearchUserId}
-                    options={users.map(user => ({
-                        value: user.id,
-                        label: `${user.email} (${user.username})`
-                    }))}
-                />
+            <div style={{ marginBottom: 16 }}>
+                <Card>
+                    <Row gutter={16} align="middle">
+                        <Col>
+                            <Button
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                onClick={() => setIsCreateModalVisible(true)}
+                            >
+                                Create Order
+                            </Button>
+                        </Col>
+                        <Col>
+                            <Button
+                                icon={<AppstoreOutlined />}
+                                onClick={() => setIsBulkCreateVisible(true)}
+                            >
+                                Bulk Create
+                            </Button>
+                        </Col>
+                        <Col flex="auto">
+                            <Select
+                                placeholder="Filter by user"
+                                style={{ width: '100%' }}
+                                allowClear
+                                onChange={setSearchUserId}
+                                options={users.map(user => ({
+                                    value: user.id,
+                                    label: `${user.email} (${user.username})`
+                                }))}
+                            />
+                        </Col>
+                    </Row>
+                </Card>
             </div>
 
             <Table
                 columns={columns}
-                dataSource={enrichOrders(orders)}
+                dataSource={enrichOrders()}
                 rowKey="id"
                 loading={loading}
                 pagination={{ pageSize: 10 }}
                 scroll={{ x: true }}
             />
 
-            {/* Модальное окно для создания заказа */}
+            {/* Модальное окно создания одиночного заказа */}
             <Modal
-                title="Create Order"
-                visible={isModalVisible}
-                onOk={handleCreate}
-                onCancel={resetModal}
-                okText="Create"
-                cancelText="Cancel"
+                title="Create New Order"
+                visible={isCreateModalVisible}
+                onOk={handleCreateOrder}
+                onCancel={() => {
+                    createForm.resetFields();
+                    setIsCreateModalVisible(false);
+                }}
                 width={700}
             >
-                <Form form={form} layout="vertical">
+                <Form form={createForm} layout="vertical">
                     <Form.Item
                         name="userId"
                         label="User"
@@ -331,13 +342,14 @@ const OrdersPage = () => {
                             placeholder="Select user"
                             loading={loading}
                             showSearch
-                            optionFilterProp="children"
-                            filterOption={(input, option) =>
-                                option.children.toLowerCase().includes(input.toLowerCase())
-                            }
+                            optionFilterProp="label"
                         >
                             {users.map(user => (
-                                <Option key={user.id} value={user.id}>
+                                <Option
+                                    key={user.id}
+                                    value={user.id}
+                                    label={`${user.email} (${user.username})`}
+                                >
                                     {user.email} ({user.username})
                                 </Option>
                             ))}
@@ -352,19 +364,20 @@ const OrdersPage = () => {
                                         <Form.Item
                                             {...restField}
                                             name={[name, 'productId']}
-                                            rules={[{ required: true, message: 'Select a product' }]}
-                                            style={{ width: 300 }}
+                                            rules={[{ required: true, message: 'Please select a product' }]}
+                                            style={{ width: '60%' }}
                                         >
                                             <Select
                                                 placeholder="Select product"
                                                 showSearch
-                                                optionFilterProp="children"
-                                                filterOption={(input, option) =>
-                                                    option.children.toLowerCase().includes(input.toLowerCase())
-                                                }
+                                                optionFilterProp="label"
                                             >
                                                 {products.map(product => (
-                                                    <Option key={product.id} value={product.id}>
+                                                    <Option
+                                                        key={product.id}
+                                                        value={product.id}
+                                                        label={`${product.title} ($${product.price})`}
+                                                    >
                                                         {product.title} (${product.price})
                                                     </Option>
                                                 ))}
@@ -374,17 +387,25 @@ const OrdersPage = () => {
                                             {...restField}
                                             name={[name, 'quantity']}
                                             initialValue={1}
-                                            rules={[{ required: true, message: 'Enter quantity' }]}
+                                            rules={[{ required: true, message: 'Please enter quantity' }]}
                                         >
-                                            <InputNumber min={1} max={100} placeholder="Qty" />
+                                            <InputNumber min={1} max={100} />
                                         </Form.Item>
-                                        <Button type="link" danger onClick={() => remove(name)}>
-                                            Remove
-                                        </Button>
+                                        <Button
+                                            type="text"
+                                            danger
+                                            icon={<DeleteOutlined />}
+                                            onClick={() => remove(name)}
+                                        />
                                     </Space>
                                 ))}
                                 <Form.Item>
-                                    <Button type="dashed" onClick={() => add()} block>
+                                    <Button
+                                        type="dashed"
+                                        onClick={() => add()}
+                                        block
+                                        icon={<PlusOutlined />}
+                                    >
                                         Add Product
                                     </Button>
                                 </Form.Item>
@@ -394,39 +415,56 @@ const OrdersPage = () => {
                 </Form>
             </Modal>
 
-            {/* Drawer для массового создания заказов */}
+            {/* Drawer для массового создания */}
             <Drawer
                 title="Bulk Create Orders"
                 width={720}
-                visible={bulkCreateVisible}
-                onClose={() => setBulkCreateVisible(false)}
+                visible={isBulkCreateVisible}
+                onClose={() => {
+                    bulkCreateForm.resetFields();
+                    setSelectedBulkProducts([]);
+                    setIsBulkCreateVisible(false);
+                }}
                 footer={
                     <div style={{ textAlign: 'right' }}>
-                        <Button onClick={() => setBulkCreateVisible(false)} style={{ marginRight: 8 }}>
+                        <Button
+                            onClick={() => {
+                                bulkCreateForm.resetFields();
+                                setSelectedBulkProducts([]);
+                                setIsBulkCreateVisible(false);
+                            }}
+                            style={{ marginRight: 8 }}
+                        >
                             Cancel
                         </Button>
-                        <Button onClick={handleBulkCreate} type="primary">
-                            Create {selectedUsers.length * selectedProducts.length} Orders
+                        <Button
+                            onClick={handleBulkCreate}
+                            type="primary"
+                            disabled={selectedBulkProducts.length === 0}
+                        >
+                            Create Orders
                         </Button>
                     </div>
                 }
             >
-                <Form layout="vertical">
-                    <Form.Item label="Select Users">
+                <Form form={bulkCreateForm} layout="vertical">
+                    <Form.Item
+                        name="users"
+                        label="Users"
+                        rules={[{ required: true, message: 'Please select at least one user' }]}
+                    >
                         <Select
                             mode="multiple"
                             placeholder="Select users"
-                            value={selectedUsers}
-                            onChange={setSelectedUsers}
-                            style={{ width: '100%' }}
                             showSearch
-                            optionFilterProp="children"
-                            filterOption={(input, option) =>
-                                option.children.toLowerCase().includes(input.toLowerCase())
-                            }
+                            optionFilterProp="label"
                         >
                             {users.map(user => (
-                                <Option key={user.id} value={user.id}>
+                                <Option
+                                    key={user.id}
+                                    value={user.id}
+                                    label={`${user.email} (${user.username})`}
+                                >
                                     {user.email} ({user.username})
                                 </Option>
                             ))}
@@ -435,30 +473,80 @@ const OrdersPage = () => {
 
                     <Divider orientation="left">Products</Divider>
 
-                    <List
-                        dataSource={products}
-                        renderItem={product => (
-                            <List.Item>
-                                <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                                    <div style={{ flex: 1 }}>
-                                        {product.title} (${product.price})
-                                    </div>
-                                    <InputNumber
-                                        min={1}
-                                        max={100}
-                                        defaultValue={1}
-                                        onChange={(value) => handleQuantityChange(product.id, value)}
-                                        style={{ width: 80 }}
-                                    />
-                                </div>
-                            </List.Item>
-                        )}
-                    />
+                    <Form.Item
+                        name="product"
+                        label="Product"
+                    >
+                        <Select
+                            placeholder="Select product"
+                            showSearch
+                            optionFilterProp="label"
+                        >
+                            {products.map(product => (
+                                <Option
+                                    key={product.id}
+                                    value={product.id}
+                                    label={`${product.title} ($${product.price})`}
+                                >
+                                    {product.title} (${product.price})
+                                </Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
 
-                    <Divider orientation="left">Orders Preview</Divider>
+                    <Form.Item
+                        name="quantity"
+                        label="Quantity"
+                        initialValue={1}
+                    >
+                        <InputNumber min={1} max={100} style={{ width: '100%' }} />
+                    </Form.Item>
+
+                    <Button
+                        type="primary"
+                        onClick={addBulkProduct}
+                        icon={<PlusOutlined />}
+                        style={{ marginBottom: 16 }}
+                    >
+                        Add Product
+                    </Button>
+
+                    {selectedBulkProducts.length > 0 && (
+                        <>
+                            <Divider orientation="left">Selected Products</Divider>
+                            <List
+                                size="small"
+                                bordered
+                                dataSource={selectedBulkProducts}
+                                renderItem={item => (
+                                    <List.Item>
+                                        <Row align="middle" style={{ width: '100%' }}>
+                                            <Col flex="auto">
+                                                {item.product.title} (${item.product.price}) × {item.quantity}
+                                            </Col>
+                                            <Col>
+                                                <Button
+                                                    type="text"
+                                                    danger
+                                                    icon={<DeleteOutlined />}
+                                                    onClick={() => removeBulkProduct(item.id)}
+                                                />
+                                            </Col>
+                                        </Row>
+                                    </List.Item>
+                                )}
+                            />
+                        </>
+                    )}
+
+                    <Divider orientation="left">Summary</Divider>
                     <div style={{ marginBottom: 16 }}>
-                        <span>Total orders to be created: </span>
-                        <strong>{selectedUsers.length * selectedProducts.length}</strong>
+                        <p>
+                            <strong>Total Orders:</strong> {bulkCreateForm.getFieldValue('users')?.length || 0}
+                        </p>
+                        <p>
+                            <strong>Total Products:</strong> {selectedBulkProducts.reduce((sum, item) => sum + item.quantity, 0)}
+                        </p>
                     </div>
                 </Form>
             </Drawer>

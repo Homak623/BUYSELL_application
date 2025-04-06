@@ -75,14 +75,15 @@ public class ProductService {
     }
 
     public List<GetProductDto> findByPriceRange(String title, Double minPrice, Double maxPrice,
-                                          String city, String author, String orderStatus) {
-        log.info("Executing query with params: title={}, minPrice={}, maxPrice={}, city={}, author={}",
+                                          String city, String author) {
+        log.info("Executing query with params: title={},"
+                + " minPrice={}, maxPrice={}, city={}, author={}",
             title, minPrice, maxPrice, city, author);
 
         List<Product> result = productRepository.findByPriceRange(
             title,
-            minPrice != null ? minPrice : null,
-            maxPrice != null ? maxPrice : null,
+            minPrice,
+            maxPrice,
             city,
             author
         );

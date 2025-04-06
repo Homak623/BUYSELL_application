@@ -1,4 +1,3 @@
-// src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Layout, Menu, Typography } from 'antd';
@@ -12,12 +11,12 @@ const { Text } = Typography;
 function App() {
     return (
         <Router>
-            <Layout style={{ minHeight: '100vh' }}>
-                {/* Шапка с навигацией */}
+            <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
+                {/* Шапка с навигацией - увеличиваем z-index */}
                 <Header style={{
                     position: 'sticky',
                     top: 0,
-                    zIndex: 1,
+                    zIndex: 10,  // Увеличиваем z-index
                     width: '100%',
                     display: 'flex',
                     alignItems: 'center',
@@ -59,9 +58,12 @@ function App() {
                     </Text>
                 </Header>
 
+                {/* Основной контент - добавляем position relative */}
                 <Content style={{
                     padding: '24px',
-                    background: '#f0f2f5'
+                    position: 'relative',  // Важно для sticky таблицы
+                    zIndex: 1,  // Меньше чем у header
+                    marginTop: '-1px'  // Убираем возможный зазор
                 }}>
                     <div style={{
                         background: '#fff',
@@ -81,7 +83,9 @@ function App() {
                 <Footer style={{
                     textAlign: 'center',
                     background: '#f0f2f5',
-                    padding: '16px 50px'
+                    padding: '16px 50px',
+                    position: 'relative',
+                    zIndex: 1
                 }}>
                     <Text type="secondary">
                         © {new Date().getFullYear()} BUYSELL Application - BSUIR Project

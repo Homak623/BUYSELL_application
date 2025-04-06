@@ -1,27 +1,13 @@
 package buysell.services;
 
 import buysell.errors.LogProcessingException;
-import jakarta.annotation.PostConstruct;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
-import lombok.Data;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,7 +17,7 @@ public class LogService {
     private static final String LOGS_DIR = "logs/";
 
     private final Map<String, String> logFiles = new ConcurrentHashMap<>();
-    private final Map<String, String> taskStatus = new ConcurrentHashMap<>(); // Изменил на String для более детальных статусов
+    private final Map<String, String> taskStatus = new ConcurrentHashMap<>();
 
     @Async
     public CompletableFuture<String> generateLogFileForDateAsync(String date) {

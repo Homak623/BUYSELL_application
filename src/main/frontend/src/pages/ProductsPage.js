@@ -13,7 +13,6 @@ import {
     Select
 } from 'antd';
 import {
-    getProducts,
     getProductById,
     createProduct,
     updateProduct,
@@ -32,7 +31,7 @@ const ProductsPage = () => {
     const [searchParams, setSearchParams] = useState({});
     const [form] = Form.useForm();
     const [searchForm] = Form.useForm();
-    const [cities, setCities] = useState(['Moscow', 'Saint Petersburg', 'New York', 'London']);
+    const [cities] = useState(['Moscow', 'Saint Petersburg', 'New York', 'London']);
 
     useEffect(() => {
         fetchProducts();
@@ -107,7 +106,6 @@ const ProductsPage = () => {
         }
     };
 
-    // Остальные методы остаются без изменений
     const handleCreate = async () => {
         try {
             const values = await form.validateFields();
@@ -246,12 +244,21 @@ const ProductsPage = () => {
     return (
         <div style={{ padding: 24 }}>
             <Spin spinning={loading}>
-                <div style={{ marginBottom: 16, background: '#fff', padding: 24, borderRadius: 8 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+                {/* Блок управления - увеличенные отступы */}
+                <div style={{
+                    marginBottom: 8,  // Уменьшил отступ до таблицы
+                    background: '#fff',
+                    padding: 24,      // Увеличил внутренний padding
+                    borderRadius: 8
+                }}>
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        marginBottom: 16 // Увеличил отступ
+                    }}>
                         <Button
                             type="primary"
                             onClick={() => setIsModalVisible(true)}
-                            style={{ marginRight: 8 }}
                         >
                             Create Product
                         </Button>
@@ -261,20 +268,41 @@ const ProductsPage = () => {
                         layout="inline"
                         form={searchForm}
                         onFinish={handleSearch}
+                        style={{ marginBottom: 0 }}
                     >
-                        <Form.Item name="title" label="Title">
-                            <Input placeholder="Search by title" allowClear />
+                        <Form.Item
+                            name="title"
+                            label="Title"
+                            style={{ marginBottom: 16, marginRight: 16 }} // Увеличил отступы
+                        >
+                            <Input
+                                placeholder="Search by title"
+                                allowClear
+                                style={{ width: 180 }} // Увеличил ширину
+                            />
                         </Form.Item>
 
-                        <Form.Item name="author" label="Author">
-                            <Input placeholder="Search by author" allowClear />
+                        <Form.Item
+                            name="author"
+                            label="Author"
+                            style={{ marginBottom: 16, marginRight: 16 }}
+                        >
+                            <Input
+                                placeholder="Search by author"
+                                allowClear
+                                style={{ width: 180 }}
+                            />
                         </Form.Item>
 
-                        <Form.Item name="city" label="City">
+                        <Form.Item
+                            name="city"
+                            label="City"
+                            style={{ marginBottom: 16, marginRight: 16 }}
+                        >
                             <Select
                                 placeholder="Select city"
                                 allowClear
-                                style={{ width: 150 }}
+                                style={{ width: 180 }} // Увеличил ширину
                             >
                                 {cities.map(city => (
                                     <Option key={city} value={city}>{city}</Option>
@@ -282,45 +310,26 @@ const ProductsPage = () => {
                             </Select>
                         </Form.Item>
 
-                        <Form.Item label="Price Range" style={{ marginBottom: 0 }}>
-                            <Space>
+                        <Form.Item
+                            label="Price Range"
+                            style={{ marginBottom: 16, marginRight: 16 }}
+                        >
+                            <Space size={8}> {/* Увеличил расстояние между элементами */}
                                 <Form.Item
                                     name={['priceRange', 'min']}
                                     noStyle
-                                    rules={[
-                                        {
-                                            validator: (_, value) => {
-                                                const max = searchForm.getFieldValue(['priceRange', 'max']);
-                                                if (value && max && parseFloat(value) > parseFloat(max)) {
-                                                    return Promise.reject('Min price cannot be greater than max price');
-                                                }
-                                                return Promise.resolve();
-                                            }
-                                        }
-                                    ]}
                                 >
                                     <InputNumber
                                         placeholder="Min $"
                                         min={0}
                                         precision={2}
-                                        style={{ width: 100 }}
+                                        style={{ width: 100 }} // Увеличил ширину
                                     />
                                 </Form.Item>
                                 <span>-</span>
                                 <Form.Item
                                     name={['priceRange', 'max']}
                                     noStyle
-                                    rules={[
-                                        {
-                                            validator: (_, value) => {
-                                                const min = searchForm.getFieldValue(['priceRange', 'min']);
-                                                if (value && min && parseFloat(value) < parseFloat(min)) {
-                                                    return Promise.reject('Max price must be ≥ min price');
-                                                }
-                                                return Promise.resolve();
-                                            }
-                                        }
-                                    ]}
                                 >
                                     <InputNumber
                                         placeholder="Max $"
@@ -332,10 +341,15 @@ const ProductsPage = () => {
                             </Space>
                         </Form.Item>
 
-                        <Form.Item>
-                            <Button type="primary" htmlType="submit">Search</Button>
+                        <Form.Item style={{ marginBottom: 16 }}>
                             <Button
-                                style={{ marginLeft: 8 }}
+                                type="primary"
+                                htmlType="submit"
+                            >
+                                Search
+                            </Button>
+                            <Button
+                                style={{ marginLeft: 16 }} // Увеличил отступ
                                 onClick={resetSearch}
                             >
                                 Reset
@@ -344,7 +358,12 @@ const ProductsPage = () => {
                     </Form>
                 </div>
 
-                <div style={{ background: '#fff', padding: 24, borderRadius: 8 }}>
+                {/* Блок таблицы - уменьшил верхний отступ */}
+                <div style={{
+                    background: '#fff',
+                    padding: 24,
+                    borderRadius: 8
+                }}>
                     <Table
                         columns={columns}
                         dataSource={products}
@@ -380,6 +399,7 @@ const ProductsPage = () => {
                                 { min: 2, message: 'Title must be at least 2 characters' },
                                 { max: 100, message: 'Title cannot exceed 100 characters' }
                             ]}
+                            style={{ marginBottom: 16 }} // Увеличил отступ
                         >
                             <Input placeholder="Enter product title" />
                         </Form.Item>
@@ -392,6 +412,7 @@ const ProductsPage = () => {
                                 { min: 10, message: 'Description must be at least 10 characters' },
                                 { max: 1000, message: 'Description cannot exceed 1000 characters' }
                             ]}
+                            style={{ marginBottom: 16 }}
                         >
                             <Input.TextArea rows={4} placeholder="Enter detailed description" />
                         </Form.Item>
@@ -403,6 +424,7 @@ const ProductsPage = () => {
                                 { required: true, message: 'Please input product price!' },
                                 { type: 'number', min: 0, message: 'Price cannot be negative' }
                             ]}
+                            style={{ marginBottom: 16 }}
                         >
                             <InputNumber
                                 style={{ width: '100%' }}
@@ -419,6 +441,7 @@ const ProductsPage = () => {
                             rules={[
                                 { required: true, message: 'Please select city!' }
                             ]}
+                            style={{ marginBottom: 16 }}
                         >
                             <Select
                                 placeholder="Select city"
