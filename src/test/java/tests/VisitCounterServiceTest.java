@@ -47,12 +47,12 @@ class VisitCounterServiceTest {
 
     @Test
     void getVisitCount_shouldReturnZeroForUnknownUrl() {
-        assertThat(visitCounterService.getVisitCount("/unknown")).isEqualTo(0);
+        assertThat(visitCounterService.getVisitCount("/unknown")).isZero();
     }
 
     @Test
     void getTotalVisitCount_shouldReturnZeroInitially() {
-        assertThat(visitCounterService.getTotalVisitCount()).isEqualTo(0);
+        assertThat(visitCounterService.getTotalVisitCount()).isZero();
     }
 
     @Test
