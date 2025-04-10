@@ -1,13 +1,18 @@
-// src/services/api.js
 import axios from 'axios';
+
+const getBaseUrl = () => {
+    if (typeof window !== 'undefined') {
+        // В продакшене используем относительные пути (проксируются через Nginx)
+        return '';
+    }
+    return 'http://buysell-backend:8080';
+};
 
 const api = axios.create({
     baseURL: 'http://localhost:8080',
-    headers: {
-        'Content-Type': 'application/json'
-    }
+    headers: {'Content-Type': 'application/json'},
+    timeout: 30000
 });
-
 // ================== Orders API ==================
 export const getOrders = () => api.get('/orders').then(res => res.data);
 export const getOrderById = (id) => api.get(`/orders/${id}`).then(res => res.data);
@@ -40,7 +45,6 @@ export const createUser = (user) => api.post('/users', user).then(res => res.dat
 export const updateUser = (id, user) => api.put(`/users/${id}`, user).then(res => res.data);
 export const deleteUser = (id) => api.delete(`/users/${id}`);
 
-// ================== Advanced Methods ==================
 export const getProductsWithFilters = async (filters = {}) => {
     const params = {
         title: filters.title || undefined,
@@ -66,7 +70,6 @@ export const getOrdersWithDetails = async () => {
     }));
 };
 
-// Добавляем перехватчик ошибок
 api.interceptors.response.use(
     response => response,
     error => {

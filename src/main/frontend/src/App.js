@@ -12,11 +12,10 @@ function App() {
     return (
         <Router>
             <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
-                {/* Шапка с навигацией - увеличиваем z-index */}
                 <Header style={{
                     position: 'sticky',
                     top: 0,
-                    zIndex: 10,  // Увеличиваем z-index
+                    zIndex: 10,
                     width: '100%',
                     display: 'flex',
                     alignItems: 'center',
@@ -58,12 +57,11 @@ function App() {
                     </Text>
                 </Header>
 
-                {/* Основной контент - добавляем position relative */}
                 <Content style={{
                     padding: '24px',
-                    position: 'relative',  // Важно для sticky таблицы
-                    zIndex: 1,  // Меньше чем у header
-                    marginTop: '-1px'  // Убираем возможный зазор
+                    position: 'relative',
+                    zIndex: 1,
+                    marginTop: '-1px'
                 }}>
                     <div style={{
                         background: '#fff',

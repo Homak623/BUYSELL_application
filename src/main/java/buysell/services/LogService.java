@@ -4,8 +4,8 @@ import buysell.errors.LogProcessingException;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 import lombok.Getter;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -24,36 +24,39 @@ public class LogService {
         String taskId = UUID.randomUUID().toString();
         taskStatus.put(taskId, "PROCESSING");
 
-        try {
-            Path sourcePath = Paths.get(LOG_FILE_PATH);
-            if (!Files.exists(sourcePath)) {
-                throw new IllegalStateException("Source log file not found");
+        CompletableFuture.runAsync(() -> {
+            try {
+                Thread.sleep(20000);
+
+                Path sourcePath = Paths.get(LOG_FILE_PATH);
+                if (!Files.exists(sourcePath)) {
+                    throw new IllegalStateException("Source log file not found");
+                }
+
+                List<String> filteredLines;
+                try (Stream<String> lines = Files.lines(sourcePath)) {
+                    filteredLines = lines
+                        .filter(line -> line.startsWith(date))
+                        .toList();
+                }
+
+                if (filteredLines.isEmpty()) {
+                    throw new IllegalStateException("No logs found for date");
+                }
+
+                Files.createDirectories(Paths.get(LOGS_DIR));
+                String filename = String.format("%slogs-%s-%s.log", LOGS_DIR, date, taskId);
+                Files.write(Paths.get(filename), filteredLines);
+
+                logFiles.put(taskId, filename);
+                taskStatus.put(taskId, "COMPLETED");
+            } catch (Exception e) {
+                String errorMsg = e.getMessage();
+                taskStatus.put(taskId, "FAILED: " + errorMsg);
             }
+        });
 
-            List<String> filteredLines = Files.lines(sourcePath)
-                .filter(line -> line.startsWith(date))
-                .toList();
-
-            if (filteredLines.isEmpty()) {
-                throw new IllegalStateException("No logs found for date");
-            }
-
-            Files.createDirectories(Paths.get(LOGS_DIR));
-            String filename = String.format("%slogs-%s-%s.log", LOGS_DIR, date, taskId);
-            Files.write(Paths.get(filename), filteredLines);
-
-            logFiles.put(taskId, filename);
-            taskStatus.put(taskId, "COMPLETED");
-
-            return CompletableFuture.completedFuture(taskId);
-        } catch (Exception e) {
-            String errorMsg = e.getMessage();
-            if (!errorMsg.contains("taskId=")) {
-                errorMsg = errorMsg + " taskId=" + taskId;
-            }
-            taskStatus.put(taskId, "FAILED: " + errorMsg);
-            throw new CompletionException(new LogProcessingException(errorMsg));
-        }
+        return CompletableFuture.completedFuture(taskId); // Возвращаем taskId сразу
     }
 
     public String getLogFilePath(String taskId) {

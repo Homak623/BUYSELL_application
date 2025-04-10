@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.Map;
@@ -27,8 +28,10 @@ public class LogController {
     private final LogService logService;
 
     @PostMapping("/{date}")
+    @Operation(summary = "Create log")
     public CompletableFuture<ResponseEntity<Map<String, String>>> generateLogs(
-        @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date)
+        throws InterruptedException {
 
         CompletableFuture<String> future = logService.generateLogFileForDateAsync(date.toString());
 
@@ -63,11 +66,12 @@ public class LogController {
             }
 
             String filePath = logService.getLogFilePath(taskId);
-            if (filePath == null || !Files.exists(Paths.get(filePath))) {
+            Path path = Paths.get(filePath);
+            if (!Files.exists(path)) {
                 return ResponseEntity.notFound().build();
             }
 
-            Resource resource = new InputStreamResource(Files.newInputStream(Paths.get(filePath)));
+            Resource resource = new InputStreamResource(Files.newInputStream(path));
             return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                     "attachment; filename=logs-" + taskId + ".log")
