@@ -42,21 +42,21 @@ jobs:
 
       - name: Install frontend dependencies
         run: |
-          cd frontend
+          cd src/frontend
           npm install
 
       - name: Build frontend
         run: |
-          cd frontend
+          cd src/frontend
           npm run build
 
       - name: Build and push frontend Docker image
         uses: docker/build-push-action@v4
         with:
-          context: frontend
+          context: src/frontend
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:latest
-          file: frontend/Dockerfile
+          file: Dockerfile.front
 
       # Trigger deploys
       - name: Trigger backend deploy on Render
