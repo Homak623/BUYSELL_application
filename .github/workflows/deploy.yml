@@ -36,6 +36,13 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/demo-deployment:latest
 
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:latest
+
       # Шаг 6: Триггер деплоя на Render через API
       - name: Trigger Render Deploy
         run: |
@@ -43,3 +50,11 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Accept: application/vnd.render+json; version=2021-06-01" \
             "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys"
+          
+          # Шаг 6: Триггер деплоя на Render через API
+          - name: Trigger Render Deploy
+            run: |
+              curl -X POST \
+                -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+                -H "Accept: application/vnd.render+json; version=2021-06-01" \
+                "https://api.render.com/v1/services/${{ secrets.RENDER_FRONTEND_SERVICE_ID }}/deploys"
