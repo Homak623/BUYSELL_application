@@ -19,13 +19,12 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      # 5. Сборка и пуш Docker-образа для фронтенда (используем Dockerfile.front)
       - name: Build and push Frontend Docker image
         uses: docker/build-push-action@v4
         with:
           context: frontend
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/nikita154/frontend:latest
           file: Dockerfile.front  # Указали кастомный путь к Dockerfile
 
       # 6. Сборка и пуш Docker-образа для бэкенда (тег demo-deployment)
