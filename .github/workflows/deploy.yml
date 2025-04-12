@@ -12,7 +12,6 @@ jobs:
       # Шаг 1: Загрузка кода
       - uses: actions/checkout@v4
 
-      # Шаг 2: Установка Java (если нужно собирать JAR)
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
