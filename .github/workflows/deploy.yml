@@ -12,42 +12,72 @@ jobs:
       # 1. Загрузка кода
       - uses: actions/checkout@v4
 
-      # 4. Логин в Docker Hub
-      - name: Login to Docker Hub
+      # 2. Проверка структуры (для отладки)
+      - name: Verify project structure
+        run: |
+          ls -la
+          ls -la src/main/
+          ls -la src/main/frontend/
+
+      # 3. Сборка фронтенда
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Build frontend
+        run: |
+          cd src/main/frontend
+          npm install
+          npm run build
+        working-directory: ./src/main/frontend
+
+      # 4. Сборка бэкенда
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build backend
+        run: mvn clean package -DskipTests
+
+      # 5. Логин в Docker Hub
+      - name: Login to Docker
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Build and push Frontend Docker image
+      # 6. Сборка фронтенд-образа
+      - name: Build and push Frontend
         uses: docker/build-push-action@v4
         with:
-          context: frontend
+          context: src/main/frontend
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/nikita154/frontend:latest
-          file: Dockerfile.front  # Указали кастомный путь к Dockerfile
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:latest
+          file: src/main/frontend/Dockerfile.front
 
-      # 6. Сборка и пуш Docker-образа для бэкенда (тег demo-deployment)
-      - name: Build and push Backend Docker image
+      # 7. Сборка бэкенд-образа
+      - name: Build and push Backend
         uses: docker/build-push-action@v4
         with:
-          context: backend
+          context: .
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/demo-deployment:latest  # Имя образа как вам нужно
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/demo-deployment:latest
           file: Dockerfile
 
-      # 7. Деплой бэкенда на Render
-      - name: Trigger Backend Deploy
+      # 8. Деплой на Render
+      - name: Deploy Backend
         run: |
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Accept: application/vnd.render+json; version=2021-06-01" \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys"  # Секрет для бэкенда
+            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys"
 
-      # 8. Деплой фронтенда на Render
-      - name: Trigger Frontend Deploy
+      - name: Deploy Frontend
         run: |
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Accept: application/vnd.render+json; version=2021-06-01" \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_FRONTEND_SERVICE_ID }}/deploys"  # Секрет для фронтенда
+            "https://api.render.com/v1/services/${{ secrets.RENDER_FRONTEND_SERVICE_ID }}/deploys"
