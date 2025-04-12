@@ -11,50 +11,64 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Backend setup
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      # Шаг 3: Сборка проекта (если нужно)
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      # Шаг 4: Логин в Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      # Шаг 5: Сборка и пуш Docker-образа
-      - name: Build and push Docker image
+      - name: Build and push backend Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/demo-deployment:latest
 
-      - name: Build and push Docker image
+      # Frontend setup
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Build and push frontend Docker image
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: frontend
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:latest
+          file: frontend/Dockerfile
 
-      # Шаг 6: Триггер деплоя на Render через API
-      - name: Trigger Render Deploy
+      # Trigger deploys
+      - name: Trigger backend deploy on Render
         run: |
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Accept: application/vnd.render+json; version=2021-06-01" \
             "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys"
-          
-          # Шаг 6: Триггер деплоя на Render через API
-          - name: Trigger Render Deploy
-            run: |
-              curl -X POST \
-                -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-                -H "Accept: application/vnd.render+json; version=2021-06-01" \
-                "https://api.render.com/v1/services/${{ secrets.RENDER_FRONTEND_SERVICE_ID }}/deploys"
+
+      - name: Trigger frontend deploy on Render
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Accept: application/vnd.render+json; version=2021-06-01" \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_FRONTEND_SERVICE_ID }}/deploys"
