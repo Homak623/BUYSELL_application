@@ -8,9 +8,11 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
-# Важные изменения:
+
+# Важные настройки:
 ENV SERVER_PORT=8080
 ENV SERVER_ADDRESS=0.0.0.0
 EXPOSE 8080
-# Убрали sleep - он может мешать определению порта
+
+# Используем exec-форму без sleep:
 CMD ["java", "-jar", "app.jar"]

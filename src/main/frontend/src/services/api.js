@@ -9,9 +9,10 @@ const getBaseUrl = () => {
 };
 
 const api = axios.create({
-    baseURL: 'http://localhost:8080',
-    headers: {'Content-Type': 'application/json'},
-    timeout: 30000
+    baseURL: process.env.REACT_APP_API_URL,
+    headers: {
+        'Content-Type': 'application/json'
+    }
 });
 // ================== Orders API ==================
 export const getOrders = () => api.get('/orders').then(res => res.data);
