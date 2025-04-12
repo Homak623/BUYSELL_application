@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Шаг 1: Загрузка кода
       - uses: actions/checkout@v4
 
       - name: Set up JDK 21
