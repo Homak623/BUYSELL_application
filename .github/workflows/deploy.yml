@@ -59,8 +59,8 @@ jobs:
       - name: Build and push Frontend Docker image
         uses: docker/build-push-action@v4
         with:
-          context: .  # Путь к директории с Dockerfile
-          file: Dockerfile.front  # Указываем имя Dockerfile
+          context: .  # Корень репозитория
+          file: Dockerfile.front
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:latest
 
