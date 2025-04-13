@@ -41,14 +41,14 @@ jobs:
 
   build-and-deploy-frontend:
     runs-on: ubuntu-latest
-    needs: build-and-deploy-backend  # Если фронтенд зависит от бэкенда
+    needs: build-and-deploy-backend
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # Укажите нужную версию Node.js
+          node-version: '18'
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -59,7 +59,7 @@ jobs:
       - name: Build and push Frontend Docker image
         uses: docker/build-push-action@v4
         with:
-          context: .  # Корень репозитория
+          context: .
           file: Dockerfile.front
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/frontend:latest
